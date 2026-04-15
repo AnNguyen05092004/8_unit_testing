@@ -373,4 +373,25 @@ class ClassMemberServiceImplTest {
         assertEquals("teacher@gmail.com", result.getContent().get(0).getEmail());
     }
 
+    @Test
+    void getMemberInClass_shouldThrowNotExistedUser_whenCallerNotFound() {
+        // Arrange: caller email from token is not found in database.
+        SearchMemberInClassDto request = SearchMemberInClassDto.builder()
+                .classId(1L)
+                .status(List.of("ACTIVE"))
+                .build();
+
+        when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("missing@gmail.com");
+        when(userRepository.findByEmail("missing@gmail.com")).thenReturn(Optional.empty());
+
+        // Act + Assert
+        WebToeicException ex = assertThrows(
+                WebToeicException.class,
+                () -> classMemberService.getMemberInClass(httpServletRequest, request, PageRequest.of(0, 10))
+        );
+
+        assertEquals(ResponseCode.NOT_EXISTED, ex.getResponseCode());
+        assertEquals(ResponseObject.USER, ex.getResponseObject());
+    }
+
 }

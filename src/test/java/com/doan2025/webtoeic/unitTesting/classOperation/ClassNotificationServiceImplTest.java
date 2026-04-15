@@ -482,4 +482,60 @@ class ClassNotificationServiceImplTest {
         assertEquals(true, notification.getIsDelete());
     }
 
+    @Test
+    void updateNotificationInClass_shouldThrowNotExistedNotification_whenNotificationNotFound() {
+        // Arrange: notification id does not exist.
+        User owner = new User();
+        owner.setEmail("owner@gmail.com");
+        owner.setRole(ERole.TEACHER);
+
+        ClassNotificationRequest request = new ClassNotificationRequest();
+        request.setClassNotificationId(999L);
+        request.setTypeNotification(1);
+
+        when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("owner@gmail.com");
+        when(userRepository.findByEmail("owner@gmail.com")).thenReturn(Optional.of(owner));
+        when(classNotificationRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // Act + Assert
+        WebToeicException ex = assertThrows(
+                WebToeicException.class,
+                () -> classNotificationService.updateNotificationInClass(httpServletRequest, request)
+        );
+
+        assertEquals(ResponseCode.NOT_EXISTED, ex.getResponseCode());
+        assertEquals(ResponseObject.NOTIFICATION, ex.getResponseObject());
+    }
+
+    @Test
+    void disableOrDeleteNotificationInClass_shouldThrowNotPermission_whenCallerIsNotOwner() {
+        // Arrange: non-owner teacher cannot disable/delete notification.
+        User caller = new User();
+        caller.setEmail("caller@gmail.com");
+        caller.setRole(ERole.TEACHER);
+
+        User owner = new User();
+        owner.setEmail("owner@gmail.com");
+
+        com.doan2025.webtoeic.domain.Class clazz = com.doan2025.webtoeic.domain.Class.builder().teacher(owner).build();
+        ClassNotification notification = ClassNotification.builder().id(30L).clazz(clazz).build();
+
+        ClassNotificationRequest request = new ClassNotificationRequest();
+        request.setClassNotificationId(30L);
+        request.setIsActive(false);
+
+        when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("caller@gmail.com");
+        when(userRepository.findByEmail("caller@gmail.com")).thenReturn(Optional.of(caller));
+        when(classNotificationRepository.findById(30L)).thenReturn(Optional.of(notification));
+
+        // Act + Assert
+        WebToeicException ex = assertThrows(
+                WebToeicException.class,
+                () -> classNotificationService.disableOrDeleteNotificationInClass(httpServletRequest, request)
+        );
+
+        assertEquals(ResponseCode.NOT_PERMISSION, ex.getResponseCode());
+        assertEquals(ResponseObject.USER, ex.getResponseObject());
+    }
+
 }

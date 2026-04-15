@@ -584,5 +584,234 @@ class ClassScheduleServiceImplTest {
                 // Assert
                 assertEquals(0, result.getTotalElements());
         }
+
+        @Test
+        void getScheduleDetail_shouldReturnDto_whenCallerPassesPermissionCheck() {
+                // Arrange: caller is authenticated and existsMemberInClass returns false.
+                User user = new User();
+                user.setId(5L);
+                user.setEmail("teacher@gmail.com");
+                user.setRole(ERole.TEACHER);
+
+                ClassSchedule schedule = ClassSchedule.builder().id(100L).build();
+                ClassScheduleResponse response = ClassScheduleResponse.builder().id(100L).build();
+
+                when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("teacher@gmail.com");
+                when(userRepository.findByEmail("teacher@gmail.com")).thenReturn(Optional.of(user));
+                when(classScheduleRepository.findById(100L)).thenReturn(Optional.of(schedule));
+                when(classMemberRepository.existsMemberInClass(100L, 5L)).thenReturn(false);
+                when(convertUtil.convertScheduleToDto(httpServletRequest, schedule)).thenReturn(response);
+
+                // Act
+                ClassScheduleResponse result = classScheduleService.getScheduleDetail(httpServletRequest, 100L);
+
+                // Assert
+                assertEquals(100L, result.getId());
+        }
+
+        @Test
+        void getScheduleDetail_shouldThrowNotPermission_whenExistsMemberInClassReturnsTrue() {
+                // Arrange: current implementation throws NOT_PERMISSION when repository returns true.
+                User user = new User();
+                user.setId(5L);
+                user.setEmail("teacher@gmail.com");
+                user.setRole(ERole.TEACHER);
+
+                ClassSchedule schedule = ClassSchedule.builder().id(100L).build();
+
+                when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("teacher@gmail.com");
+                when(userRepository.findByEmail("teacher@gmail.com")).thenReturn(Optional.of(user));
+                when(classScheduleRepository.findById(100L)).thenReturn(Optional.of(schedule));
+                when(classMemberRepository.existsMemberInClass(100L, 5L)).thenReturn(true);
+
+                // Act + Assert
+                WebToeicException ex = assertThrows(
+                        WebToeicException.class,
+                        () -> classScheduleService.getScheduleDetail(httpServletRequest, 100L)
+                );
+
+                assertEquals(ResponseCode.NOT_PERMISSION, ex.getResponseCode());
+                assertEquals(ResponseObject.USER, ex.getResponseObject());
+        }
+
+        @Test
+        void getClassSchedule_shouldReturnManagerScope_whenCallerIsManager() {
+                // Arrange: manager branch uses null class filter.
+                User manager = new User();
+                manager.setEmail("manager@gmail.com");
+                manager.setRole(ERole.MANAGER);
+
+                SearchScheduleSto dto = new SearchScheduleSto();
+                dto.setClassId(List.of(1L));
+                Pageable pageable = PageRequest.of(0, 10);
+                ClassSchedule schedule = ClassSchedule.builder().id(101L).build();
+
+                when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("manager@gmail.com");
+                when(userRepository.findByEmail("manager@gmail.com")).thenReturn(Optional.of(manager));
+                when(classScheduleRepository.filterSchedule(org.mockito.ArgumentMatchers.any(SearchScheduleSto.class), org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.any(Pageable.class)))
+                        .thenReturn(new PageImpl<>(List.of(schedule), pageable, 1));
+                when(convertUtil.convertScheduleToDto(httpServletRequest, schedule)).thenReturn(ClassScheduleResponse.builder().id(101L).build());
+
+                // Act
+                Page<?> result = classScheduleService.getClassSchedule(httpServletRequest, dto, pageable);
+
+                // Assert
+                assertEquals(1, result.getTotalElements());
+        }
+
+        @Test
+        void getClassSchedule_shouldThrowNotPermission_whenRoleIsNull() {
+                // Arrange: null role hits NOT_PERMISSION branch.
+                User user = new User();
+                user.setEmail("unknown@gmail.com");
+                user.setRole(null);
+
+                SearchScheduleSto dto = new SearchScheduleSto();
+
+                when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("unknown@gmail.com");
+                when(userRepository.findByEmail("unknown@gmail.com")).thenReturn(Optional.of(user));
+
+                // Act + Assert
+                WebToeicException ex = assertThrows(
+                        WebToeicException.class,
+                        () -> classScheduleService.getClassSchedule(httpServletRequest, dto, PageRequest.of(0, 10))
+                );
+
+                assertEquals(ResponseCode.NOT_PERMISSION, ex.getResponseCode());
+                assertEquals(ResponseObject.USER, ex.getResponseObject());
+        }
+
+        @Test
+        void updateScheduleInClass_shouldThrowNotPermission_whenTeacherIsNotOwner() {
+                // Arrange: non-owner teacher should be denied.
+                User caller = new User();
+                caller.setEmail("caller@gmail.com");
+                caller.setRole(ERole.TEACHER);
+
+                User owner = new User();
+                owner.setEmail("owner@gmail.com");
+
+                com.doan2025.webtoeic.domain.Class clazz = com.doan2025.webtoeic.domain.Class.builder().teacher(owner).build();
+                ClassSchedule schedule = ClassSchedule.builder().id(100L).clazz(clazz).room(Room.builder().id(10L).build()).build();
+
+                ClassScheduleRequest request = new ClassScheduleRequest();
+                request.setClassScheduleId(100L);
+                request.setStatus(1);
+                request.setRoomId(10L);
+                request.setStartAt(new Date(System.currentTimeMillis() + 60_000));
+                request.setEndAt(new Date(System.currentTimeMillis() + 120_000));
+
+                when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("caller@gmail.com");
+                when(userRepository.findByEmail("caller@gmail.com")).thenReturn(Optional.of(caller));
+                when(classScheduleRepository.findById(100L)).thenReturn(Optional.of(schedule));
+
+                // Act + Assert
+                WebToeicException ex = assertThrows(
+                        WebToeicException.class,
+                        () -> classScheduleService.updateScheduleInClass(httpServletRequest, request)
+                );
+
+                assertEquals(ResponseCode.NOT_PERMISSION, ex.getResponseCode());
+                assertEquals(ResponseObject.USER, ex.getResponseObject());
+        }
+
+        @Test
+        void cancelledScheduleInClass_shouldThrowNotPermission_whenCallerIsNotTeacherOwnerOrConsultant() {
+                // Arrange: teacher caller with different code should be denied.
+                User caller = new User();
+                caller.setEmail("caller@gmail.com");
+                caller.setRole(ERole.TEACHER);
+                caller.setCode("TEACHER_A");
+
+                User owner = new User();
+                owner.setEmail("owner@gmail.com");
+                owner.setCode("TEACHER_B");
+
+                com.doan2025.webtoeic.domain.Class clazz = com.doan2025.webtoeic.domain.Class.builder().teacher(owner).build();
+                ClassSchedule schedule = ClassSchedule.builder().id(101L).clazz(clazz).status(EScheduleStatus.ACTIVE).isActive(true).build();
+
+                when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("caller@gmail.com");
+                when(userRepository.findByEmail("caller@gmail.com")).thenReturn(Optional.of(caller));
+                when(classScheduleRepository.findById(101L)).thenReturn(Optional.of(schedule));
+
+                // Act + Assert
+                WebToeicException ex = assertThrows(
+                        WebToeicException.class,
+                        () -> classScheduleService.cancelledScheduleInClass(httpServletRequest, List.of(101L))
+                );
+
+                assertEquals(ResponseCode.NOT_PERMISSION, ex.getResponseCode());
+                assertEquals(ResponseObject.USER, ex.getResponseObject());
+        }
+
+        @Test
+        void detailStatisticAttendance_shouldThrowNotPermission_whenCallerIsStudent() {
+                // Arrange: student is not in allowed roles in this flow.
+                User student = new User();
+                student.setId(6L);
+                student.setEmail("student@gmail.com");
+                student.setRole(ERole.STUDENT);
+
+                ClassSchedule schedule = ClassSchedule.builder()
+                        .id(102L)
+                        .clazz(com.doan2025.webtoeic.domain.Class.builder().id(1L).build())
+                        .build();
+
+                when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("student@gmail.com");
+                when(userRepository.findByEmail("student@gmail.com")).thenReturn(Optional.of(student));
+                when(classScheduleRepository.findById(102L)).thenReturn(Optional.of(schedule));
+
+                // Act + Assert
+                WebToeicException ex = assertThrows(
+                        WebToeicException.class,
+                        () -> classScheduleService.detailStatisticAttendance(httpServletRequest, 102L, PageRequest.of(0, 10))
+                );
+
+                assertEquals(ResponseCode.NOT_PERMISSION, ex.getResponseCode());
+                assertEquals(ResponseObject.USER, ex.getResponseObject());
+        }
+
+        @Test
+        void overviewStatisticAttendance_shouldThrowNotPermission_whenCallerIsStudent() {
+                // Arrange: student should be denied for overview statistic.
+                User student = new User();
+                student.setId(7L);
+                student.setEmail("student@gmail.com");
+                student.setRole(ERole.STUDENT);
+
+                when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("student@gmail.com");
+                when(userRepository.findByEmail("student@gmail.com")).thenReturn(Optional.of(student));
+
+                // Act + Assert
+                WebToeicException ex = assertThrows(
+                        WebToeicException.class,
+                        () -> classScheduleService.overviewStatisticAttendance(httpServletRequest, 1L, PageRequest.of(0, 10))
+                );
+
+                assertEquals(ResponseCode.NOT_PERMISSION, ex.getResponseCode());
+                assertEquals(ResponseObject.USER, ex.getResponseObject());
+        }
+
+        @Test
+        void overviewStudentAttendance_shouldThrowNotPermission_whenCallerIsStudent() {
+                // Arrange: student should be denied for overview student attendance.
+                User student = new User();
+                student.setId(7L);
+                student.setEmail("student@gmail.com");
+                student.setRole(ERole.STUDENT);
+
+                when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("student@gmail.com");
+                when(userRepository.findByEmail("student@gmail.com")).thenReturn(Optional.of(student));
+
+                // Act + Assert
+                WebToeicException ex = assertThrows(
+                        WebToeicException.class,
+                        () -> classScheduleService.overviewStudentAttendance(httpServletRequest, 1L, PageRequest.of(0, 10))
+                );
+
+                assertEquals(ResponseCode.NOT_PERMISSION, ex.getResponseCode());
+                assertEquals(ResponseObject.USER, ex.getResponseObject());
+        }
 }
+
 
