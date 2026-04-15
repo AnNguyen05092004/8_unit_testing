@@ -1,0 +1,1 @@
+{"uuid":"e2c2f7c2-f5e0-4a85-9174-93cfe5dacc31","name":"createVNPayPayment_TC_UT_PAY_011_shouldThrowInvalidWhenAmountIsNegative()","children":["99bd9db4-00ad-45b8-a222-1780b9e672d0"],"befores":[],"afters":[],"start":1776266185516,"stop":1776266185518}

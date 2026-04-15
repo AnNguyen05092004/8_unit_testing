@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: webtoeic
+    env: java
+    plan: free
+    buildCommand: ./mvnw clean package -DskipTests
+    startCommand: java -jar -Dspring.profiles.active=dev target/*.jar
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: dev
+      - key: DB_HOST
+        value: mysql-ktclpm-hnkhoa04-3066.k.aivencloud.com
+      - key: DB_PORT
+        value: 13954
+      - key: DB_USER
+        value: avnadmin
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SIGNER_KEY
+        sync: false
+      - key: CLOUD_NAME
+        value: concac
+        # sync: false
+      - key: API_KEY
+        value: 755362449962228
+      - key: API_SECRET
+        sync: false
+      - key: PASSWORD_KEY_EMAIL
+        sync: false
+      - key: VPN_TMN_CODE
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false

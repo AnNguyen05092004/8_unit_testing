@@ -1,0 +1,1 @@
+{"uuid":"e61f7fcd-2252-464d-aa40-a6a84388a73c","name":"createOrderByCartItem_TC_UT_ORDER_001_shouldCreateOrderAndOrderDetailThenDeleteCartItem()","children":["b1d3470f-92c2-4485-9c8d-3b7762316d9b"],"befores":[],"afters":[],"start":1776067413823,"stop":1776067413826}
