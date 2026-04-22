@@ -142,6 +142,9 @@ class AuthenticationServiceTest {
     @Test
     @DisplayName("TC_AUTH_001: authenticate returns token for valid credentials")
     void authenticateReturnsTokenForValidCredentials() {
+        // Why this case exists:
+        // This is the baseline authentication success path. If this fails, the module cannot log users in,
+        // so every other auth-related feature becomes irrelevant.
         AuthenticationRequest request = new AuthenticationRequest(" student@test.com ", "password123");
 
         when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(activeStudent));
@@ -158,6 +161,9 @@ class AuthenticationServiceTest {
     @Test
     @DisplayName("TC_AUTH_002: authenticate throws when email does not exist")
     void authenticateThrowsWhenEmailDoesNotExist() {
+        // Why this case exists:
+        // Invalid identity input must fail before password checking. This proves the service does not
+        // continue with password comparison when the email itself is unknown.
         AuthenticationRequest request = new AuthenticationRequest("missing@test.com", "password123");
 
         when(userRepository.findByEmail("missing@test.com")).thenReturn(Optional.empty());
@@ -176,6 +182,9 @@ class AuthenticationServiceTest {
     @Test
     @DisplayName("TC_AUTH_003: authenticate throws when password is incorrect")
     void authenticateThrowsWhenPasswordIsIncorrect() {
+        // Why this case exists:
+        // This is the standard negative login path. It shows the service distinguishes
+        // "email not found" from "password wrong", which is important business behavior.
         AuthenticationRequest request = new AuthenticationRequest("student@test.com", "wrongPassword");
 
         when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(activeStudent));
@@ -194,6 +203,9 @@ class AuthenticationServiceTest {
     @Test
     @DisplayName("TC_AUTH_004: authenticate throws when account is unavailable")
     void authenticateThrowsWhenAccountIsUnavailable() {
+        // Why this case exists:
+        // Even if credentials are correct, the business rule says inactive+deleted accounts cannot log in.
+        // This checks account state validation, not just credential validation.
         AuthenticationRequest request = new AuthenticationRequest("deleted@test.com", "password123");
 
         when(userRepository.findByEmail("deleted@test.com")).thenReturn(Optional.of(inactiveDeletedUser));
@@ -331,6 +343,34 @@ class AuthenticationServiceTest {
         verify(consultantRepository, times(1)).save(any(Consultant.class));
         verify(managerRepository, never()).save(any(Manager.class));
         verify(teacherRepository, never()).save(any(Teacher.class));
+        verify(studentRepository, never()).save(any(Student.class));
+    }
+
+    // TC_AUTH_021
+    @Test
+    @DisplayName("TC_AUTH_021: register creates a teacher account for teacher role")
+    void registerCreatesTeacherAccountForTeacherRole() {
+        // Why this case exists:
+        // Earlier coverage had student, manager, and consultant but missed teacher.
+        // This closes the role-branch gap in the register method.
+        RegisterRequest request = new RegisterRequest(
+                "teacher@test.com",
+                "password123",
+                "Tina",
+                "Teacher",
+                ERole.TEACHER.getValue()
+        );
+
+        when(userRepository.existsByEmail("teacher@test.com")).thenReturn(false);
+        when(userRepository.existsByCode(anyString())).thenReturn(false);
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPwd");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        authenticationService.register(request);
+
+        verify(teacherRepository, times(1)).save(any(Teacher.class));
+        verify(managerRepository, never()).save(any(Manager.class));
+        verify(consultantRepository, never()).save(any(Consultant.class));
         verify(studentRepository, never()).save(any(Student.class));
     }
 
@@ -541,6 +581,92 @@ class AuthenticationServiceTest {
         assertEquals(ResponseCode.TOKEN_EXPIRED, exception.getResponseCode());
         assertEquals(ResponseObject.CODE, exception.getResponseObject());
         verify(forgotPasswordRepository, times(1)).deleteById(2L);
+    }
+
+    // TC_AUTH_022
+    @Test
+    @DisplayName("TC_AUTH_022: introspect returns valid false for an invalidated token")
+    void introspectReturnsFalseForInvalidatedToken() throws JOSEException, ParseException {
+        // Why this case exists:
+        // A token can be structurally valid but still unusable because it was blacklisted.
+        // This is important when explaining logout/refresh security.
+        String validToken = buildToken(activeStudent, TEST_SIGNER_KEY, Instant.now(), Instant.now().plusSeconds(600));
+
+        when(invalidatedTokenRepository.existsByToken(anyString())).thenReturn(true);
+
+        IntrospectResponse response = authenticationService.introspect(
+                IntrospectRequest.builder().token(validToken).build()
+        );
+
+        assertFalse(response.isValid());
+    }
+
+    // TC_AUTH_023
+    @Test
+    @DisplayName("TC_AUTH_023: refreshToken throws when token owner is unavailable")
+    void refreshTokenThrowsWhenTokenOwnerIsUnavailable() throws ParseException, JOSEException {
+        // Why this case exists:
+        // Refresh should not bypass account status checks. A previously issued token must not revive
+        // an account that is now inactive and deleted.
+        String validToken = buildToken(inactiveDeletedUser, TEST_SIGNER_KEY, Instant.now(), Instant.now().plusSeconds(600));
+
+        when(jwtUtil.getJwtFromRequest(httpServletRequest)).thenReturn(validToken);
+        when(invalidatedTokenRepository.existsByToken(anyString())).thenReturn(false);
+        when(userRepository.findByEmail("deleted@test.com")).thenReturn(Optional.of(inactiveDeletedUser));
+
+        WebToeicException exception = assertThrows(
+                WebToeicException.class,
+                () -> authenticationService.refreshToken(httpServletRequest)
+        );
+
+        assertEquals(ResponseCode.NOT_AVAILABLE, exception.getResponseCode());
+        assertEquals(ResponseObject.USER, exception.getResponseObject());
+    }
+
+    // TC_AUTH_024
+    @Test
+    @DisplayName("TC_AUTH_024: verifyMail throws when user email does not exist")
+    void verifyMailThrowsWhenUserEmailDoesNotExist() {
+        // Why this case exists:
+        // Forgot-password flow must reject unknown emails in service logic.
+        // It also proves the mail service is not called on invalid input.
+        VerifyRequest request = VerifyRequest.builder().email("missing@test.com").build();
+
+        when(userRepository.findByEmail("missing@test.com")).thenReturn(Optional.empty());
+
+        WebToeicException exception = assertThrows(
+                WebToeicException.class,
+                () -> authenticationService.verifyMail(request)
+        );
+
+        assertEquals(ResponseCode.NOT_EXISTED, exception.getResponseCode());
+        assertEquals(ResponseObject.USER, exception.getResponseObject());
+        verify(emailService, never()).sendEmail(anyString(), anyString(), anyString());
+    }
+
+    // TC_AUTH_025
+    @Test
+    @DisplayName("TC_AUTH_025: verifyOtp throws when OTP record does not exist")
+    void verifyOtpThrowsWhenOtpRecordDoesNotExist() {
+        // Why this case exists:
+        // OTP verification has three meaningful negative branches: null OTP, expired OTP, and nonexistent OTP.
+        // This test covers the missing lookup-failure branch.
+        VerifyRequest request = VerifyRequest.builder()
+                .email("student@test.com")
+                .otp(111111)
+                .build();
+
+        when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(activeStudent));
+        when(forgotPasswordRepository.findByOtpAndUser(111111, activeStudent)).thenReturn(Optional.empty());
+
+        WebToeicException exception = assertThrows(
+                WebToeicException.class,
+                () -> authenticationService.verify_otp(request)
+        );
+
+        assertEquals(ResponseCode.NOT_EXISTED, exception.getResponseCode());
+        assertEquals(ResponseObject.CODE, exception.getResponseObject());
+        verify(forgotPasswordRepository, never()).deleteById(any());
     }
 
     private String buildToken(User user, String signerKey, Instant issuedAt, Instant expirationTime) {

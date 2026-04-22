@@ -401,4 +401,41 @@ class CourseServiceImplTest {
         assertEquals(true, course.getIsDelete());
         verify(courseRepository).save(course);
     }
+
+    // TC_COURSE_021 - FAIL: price=null causes NullPointerException instead of WebToeicException
+    @Test
+    @DisplayName("TC_COURSE_021: createCourse with null price should throw WebToeicException NOT_AVAILABLE")
+    void createCourseThrowsWhenPriceIsNull() {
+        CourseRequest req = new CourseRequest();
+        req.setCategoryId(1);
+        req.setAuthorId(1L);
+        req.setTitle("Test");
+        req.setPrice(null);
+
+        // Expected: WebToeicException NOT_AVAILABLE
+        // Actual: NullPointerException - code does (request.getPrice() <= 0) unboxing null Long → BUG
+        assertThrows(WebToeicException.class, () -> courseService.createCourse(request, req));
+    }
+
+    // TC_COURSE_023 - FAIL: controller allows CONSULTANT to call update-status but service throws NOT_PERMISSION
+    @Test
+    @DisplayName("TC_COURSE_023: disableOrDeleteCourse by CONSULTANT should throw NOT_PERMISSION (controller/service inconsistency)")
+    void disableOrDeleteCourseThrowsForConsultant() {
+        User consultantUser = new User();
+        consultantUser.setId(5L);
+        consultantUser.setEmail("consultant@test.com");
+        consultantUser.setRole(ERole.CONSULTANT);
+
+        CourseRequest req = new CourseRequest();
+        req.setId(10L);
+        req.setIsActive(false);
+
+        when(jwtUtil.getEmailFromToken(request)).thenReturn("consultant@test.com");
+        when(userRepository.findByEmail("consultant@test.com")).thenReturn(Optional.of(consultantUser));
+        when(courseRepository.findById(10L)).thenReturn(Optional.of(course));
+
+        // This PASSES at service level (throws NOT_PERMISSION as expected)
+        // But controller @PreAuthorize("CONSULTANT OR MANAGER") allows CONSULTANT in → inconsistency
+        assertThrows(WebToeicException.class, () -> courseService.disableOrDeleteCourse(request, req));
+    }
 }
