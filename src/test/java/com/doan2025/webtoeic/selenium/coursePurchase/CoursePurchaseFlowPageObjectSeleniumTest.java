@@ -65,6 +65,8 @@ class CoursePurchaseFlowPageObjectSeleniumTest {
     @Test
     @DisplayName("Page Object E2E: purchase course from cart and verify order history")
     void shouldPurchaseCourseFromCartAndVerifyOrderHistoryWithPageObjects() {
+        // TT-SEL-001 (tool report): happy path mua khoa hoc tu gio hang den thanh toan thanh cong.
+        // Muc tieu de doi chieu voi tai lieu: don hang tao thanh cong, lich su don hang va khoa hoc da mua duoc dong bo.
         // Khởi tạo các Page Object: mỗi class đại diện cho một màn hình/chức năng.
         LoginPage loginPage = new LoginPage(driver, BASE_URL, SLOW_MILLIS);
         CartPage cartPage = new CartPage(driver, BASE_URL, SLOW_MILLIS);
@@ -120,6 +122,75 @@ class CoursePurchaseFlowPageObjectSeleniumTest {
         // Kiểm tra lịch sử đơn hàng có đơn vừa mua (truy vết giao dịch).
         ordersPage.openOrders();
         ordersPage.assertOrderVisibleByTitle(selected.title());
+    }
+
+    @Test
+    @DisplayName("Page Object E2E: open failed payment status page")
+    void shouldShowFailedPaymentStatusOnOrderStatusPage() {
+        // TT-SEL-002 (tool report): mo trang ket qua thanh toan that bai va xac nhan UI hien thi dung.
+        // Muc tieu de doi chieu voi tai lieu: trang hien thong diep that bai ro rang va khong bi vo giao dien.
+        OrderStatusPage statusPage = new OrderStatusPage(driver, BASE_URL, SLOW_MILLIS);
+
+        statusPage.openMockFailed();
+        statusPage.assertFailedVisible();
+    }
+
+    @Test
+    @DisplayName("Page Object E2E: remove own cart item from full cart")
+    void shouldRemoveOwnCartItemFromFullCart() {
+        // TT-SEL-005 (tool report): xoa cart item cua chinh student trong full cart.
+        // Muc tieu de doi chieu voi tai lieu: item bien mat, badge ve 0 va tong tien cap nhat ve 0.
+        LoginPage loginPage = new LoginPage(driver, BASE_URL, SLOW_MILLIS);
+        CartPage cartPage = new CartPage(driver, BASE_URL, SLOW_MILLIS);
+        CoursesPage coursesPage = new CoursesPage(driver, BASE_URL, SLOW_MILLIS);
+
+        loginPage.loginAs(STUDENT_EMAIL, STUDENT_PASSWORD);
+        cartPage.clearCartIfNeeded();
+
+        coursesPage.openCourses();
+        CoursesPage.CourseSelection selected = coursesPage.addFirstPurchasableCourseToCart();
+
+        cartPage.openMiniCart();
+        cartPage.goToFullCartFromMiniCart();
+        CartPage.CartSnapshot snapshot = cartPage.readCartSnapshot(selected.title());
+        Assertions.assertEquals(selected.title(), snapshot.title());
+
+        cartPage.clickRemoveInCartItem(selected.title());
+        cartPage.confirmRemoveCourse(selected.title());
+
+        cartPage.assertCourseAbsentFromCart(selected.title());
+        Assertions.assertEquals(0, cartPage.readCartBadgeCount(),
+            "Cart badge should become 0 after removing the only cart item");
+        cartPage.assertCartTotalZero();
+    }
+
+    @Test
+    @DisplayName("Page Object E2E: add course to cart and verify full-cart snapshot")
+    void shouldAddCourseToCartAndVerifySnapshot() {
+        // TT-SEL-006 (tool report): them khoa hoc vao gio va xac thuc snapshot full cart.
+        // Muc tieu de doi chieu voi tai lieu: title, price, total va badge phai khop voi khoa hoc vua them.
+        LoginPage loginPage = new LoginPage(driver, BASE_URL, SLOW_MILLIS);
+        CartPage cartPage = new CartPage(driver, BASE_URL, SLOW_MILLIS);
+        CoursesPage coursesPage = new CoursesPage(driver, BASE_URL, SLOW_MILLIS);
+
+        loginPage.loginAs(STUDENT_EMAIL, STUDENT_PASSWORD);
+        cartPage.clearCartIfNeeded();
+
+        coursesPage.openCourses();
+        CoursesPage.CourseSelection selected = coursesPage.addFirstPurchasableCourseToCart();
+
+        cartPage.openMiniCart();
+        cartPage.goToFullCartFromMiniCart();
+
+        CartPage.CartSnapshot snapshot = cartPage.readCartSnapshot(selected.title());
+        Assertions.assertEquals(selected.title(), snapshot.title(),
+            "Course title in cart should match selected course");
+        Assertions.assertEquals(selected.price(), snapshot.price(),
+            "Course price in cart should match selected course price");
+        Assertions.assertEquals(selected.price(), snapshot.total(),
+            "Cart total should equal selected course price for single-item cart");
+        Assertions.assertEquals(1, cartPage.readCartBadgeCount(),
+            "Cart badge should show exactly one item after first add-to-cart");
     }
 
 }

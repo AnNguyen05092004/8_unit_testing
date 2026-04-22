@@ -79,6 +79,31 @@ public class CartPage extends BasePage {
         click(By.xpath("//div[contains(@class,'cart-items')]//li[contains(@class,'ant-list-item')][.//h4[contains(normalize-space(),\"" + escapeXpath(title) + "\")]]//button[contains(normalize-space(),'Mua ngay')]"));
     }
 
+    public void clickRemoveInCartItem(String title) {
+        click(By.xpath(
+            "//div[contains(@class,'cart-page')]//div[contains(@class,'cart-items')]"
+                + "//li[contains(@class,'ant-list-item')][.//h4[contains(normalize-space(),\""
+                + escapeXpath(title) + "\")]]//button[contains(normalize-space(),'Xóa')]"));
+    }
+
+    public void confirmRemoveCourse(String title) {
+        By itemLocator = By.xpath(
+            "//div[contains(@class,'cart-items')]//li[contains(@class,'ant-list-item')][.//h4[contains(normalize-space(),\""
+                + escapeXpath(title) + "\")]]");
+        By confirmButton = By.xpath(
+            "//div[contains(@class,'ant-modal') and .//button[contains(normalize-space(),'Xóa')]]"
+                + "//button[contains(@class,'ant-btn-dangerous') and contains(normalize-space(),'Xóa')]");
+
+        wait.until(d -> d.findElements(itemLocator).isEmpty() || !d.findElements(confirmButton).isEmpty());
+
+        if (!driver.findElements(itemLocator).isEmpty() && !driver.findElements(confirmButton).isEmpty()) {
+            click(confirmButton);
+        }
+        wait.until(d -> d.findElements(By.xpath(
+            "//div[contains(@class,'cart-items')]//li[contains(@class,'ant-list-item')][.//h4[contains(normalize-space(),\""
+                + escapeXpath(title) + "\")]]")).isEmpty());
+    }
+
     /**
      * Clicks "Mua ngay" for a specific course inside the open mini-cart drawer.
      * The drawer must already be open (call openMiniCart() first).
@@ -198,5 +223,16 @@ public class CartPage extends BasePage {
         }
         String text = badges.get(0).getText().replaceAll("[^0-9]", "");
         return text.isEmpty() ? 0 : Integer.parseInt(text);
+    }
+
+    public void assertCartTotalZero() {
+        openPath("/dashboard/cart");
+        waitUrlContains("/dashboard/cart");
+        List<WebElement> totalRows = driver.findElements(By.xpath("//div[contains(@class,'total-row')]//h3"));
+        if (totalRows.isEmpty()) {
+            return;
+        }
+        Assertions.assertEquals(BigDecimal.ZERO, normalizePrice(totalRows.get(0).getText().trim()),
+            "Expected cart total to become 0 after removing the only course");
     }
 }

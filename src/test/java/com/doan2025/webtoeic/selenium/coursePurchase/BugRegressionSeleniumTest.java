@@ -93,6 +93,8 @@ class BugRegressionSeleniumTest {
     @Test
     @DisplayName("Purchased course must be removed from cart after payment via mini-cart")
     void shouldRemovePurchasedCourseFromCartAfterPayment() {
+        // TT-SEL-003 (tool report): regression bug mua thanh cong nhung khoa hoc van con trong gio.
+        // Muc tieu de doi chieu voi tai lieu: khoa hoc da mua phai bi xoa khoi cart, khoa hoc con lai van giu nguyen.
         // Khởi tạo các page cần dùng cho flow bug 1.
         LoginPage loginPage    = new LoginPage(driver, BASE_URL, SLOW_MILLIS);
         CartPage cartPage      = new CartPage(driver, BASE_URL, SLOW_MILLIS);
@@ -161,6 +163,8 @@ class BugRegressionSeleniumTest {
     @Test
     @DisplayName("Course button must change to 'Tiếp tục thanh toán' when pending order exists")
     void shouldShowContinueToCheckoutButtonWhenPendingOrderExists() {
+        // TT-SEL-004 (tool report): regression bug nut tren course card khong doi khi da co pending order.
+        // Muc tieu de doi chieu voi tai lieu: nut phai doi sang 'Tiep tuc thanh toan' thay vi van la 'Mua ngay'.
         // Khởi tạo page cho flow bug 2 (không cần orders page ở test này).
         LoginPage loginPage     = new LoginPage(driver, BASE_URL, SLOW_MILLIS);
         CartPage cartPage       = new CartPage(driver, BASE_URL, SLOW_MILLIS);

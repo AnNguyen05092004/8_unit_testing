@@ -1,0 +1,986 @@
+{
+    "info": {
+        "_postman_id": "b5c4f37b-7d0f-4861-a6e1-bd9d9cbef601",
+        "name": "Course Purchase Flow",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "description": "Skeleton collection for the student purchase flow covering authentication, cart, order, and payment APIs. Run Login first so the collection can persist {{accessToken}} automatically."
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{accessToken}}",
+                "type": "string"
+            }
+        ]
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8888"
+        },
+        {
+            "key": "feBaseUrl",
+            "value": "http://localhost:5173"
+        },
+        {
+            "key": "studentEmail",
+            "value": "student@gmail.com"
+        },
+        {
+            "key": "studentPassword",
+            "value": "abcd@1234"
+        },
+        {
+            "key": "accessToken",
+            "value": ""
+        },
+        {
+            "key": "courseId",
+            "value": "1005"
+        },
+        {
+            "key": "duplicateCourseId",
+            "value": "1001"
+        },
+        {
+            "key": "cartItemId",
+            "value": "7001"
+        },
+        {
+            "key": "orderId",
+            "value": "2001"
+        },
+        {
+            "key": "otherUserOrderId",
+            "value": "2005"
+        },
+        {
+            "key": "completedOrderId",
+            "value": "2002"
+        },
+        {
+            "key": "orderPage",
+            "value": "0"
+        },
+        {
+            "key": "orderSize",
+            "value": "10"
+        },
+        {
+            "key": "orderSort",
+            "value": "createdAt,desc"
+        },
+        {
+            "key": "vnpTxnRef",
+            "value": "demo_2001"
+        },
+        {
+            "key": "vnpTransactionNo",
+            "value": "99999999"
+        },
+        {
+            "key": "vnpAmount",
+            "value": "100000"
+        },
+        {
+            "key": "vnpPayDate",
+            "value": "20260420120000"
+        },
+        {
+            "key": "vnpResponseCode",
+            "value": "00"
+        },
+        {
+            "key": "vnpTransactionStatus",
+            "value": "00"
+        },
+        {
+            "key": "vnpSecureHash",
+            "value": "REPLACE_WITH_VALID_HASH"
+        }
+    ],
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Login Student",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('HTTP 200', function () {",
+                                    "  pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Response code is 200', function () {",
+                                    "  pm.expect(json.code).to.eql(200);",
+                                    "});",
+                                    "if (json.data && json.data.token) {",
+                                    "  pm.collectionVariables.set('accessToken', json.data.token);",
+                                    "  pm.environment.set('accessToken', json.data.token);",
+                                    "}",
+                                    "pm.test('Authentication succeeded', function () {",
+                                    "  pm.expect(json.data.authenticated).to.eql(true);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{studentEmail}}\",\n  \"password\": \"{{studentPassword}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Authenticates a student account and persists the JWT token into the collection and environment variables."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Cart",
+            "item": [
+                {
+                    "name": "Get Own Cart",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);",
+                                    "if (Array.isArray(json.data) && json.data.length > 0) {",
+                                    "  pm.collectionVariables.set('cartItemId', String(json.data[0].id));",
+                                    "  pm.environment.set('cartItemId', String(json.data[0].id));",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/cart",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "cart"
+                            ]
+                        },
+                        "description": "Gets the current student's cart and stores the first cart item id into {{cartItemId}} when available."
+                    }
+                },
+                {
+                    "name": "Add Course To Cart",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/cart/add-to-cart?id={{courseId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "cart",
+                                "add-to-cart"
+                            ],
+                            "query": [
+                                {
+                                    "key": "id",
+                                    "value": "{{courseId}}"
+                                }
+                            ]
+                        },
+                        "description": "Adds the configured course into the student's cart. Run Get Own Cart afterwards to refresh {{cartItemId}}."
+                    }
+                },
+                {
+                    "name": "Add Duplicate Course To Cart (Negative)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Duplicate add-to-cart must be rejected', function () {",
+                                    "  pm.expect(pm.response.code).to.not.eql(200);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/cart/add-to-cart?id={{duplicateCourseId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "cart",
+                                "add-to-cart"
+                            ],
+                            "query": [
+                                {
+                                    "key": "id",
+                                    "value": "{{duplicateCourseId}}"
+                                }
+                            ]
+                        },
+                        "description": "Dedicated negative flow for duplicate add-to-cart using {{duplicateCourseId}}."
+                    }
+                },
+                {
+                    "name": "Remove Cart Item",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/cart/remove-from-cart?id={{cartItemId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "cart",
+                                "remove-from-cart"
+                            ],
+                            "query": [
+                                {
+                                    "key": "id",
+                                    "value": "{{cartItemId}}"
+                                }
+                            ]
+                        },
+                        "description": "Removes a single cart item. Make sure {{cartItemId}} is populated from Get Own Cart or set manually."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Order",
+            "item": [
+                {
+                    "name": "Get Own Orders",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);",
+                                    "if (json.data && Array.isArray(json.data.content) && json.data.content.length > 0) {",
+                                    "  pm.collectionVariables.set('orderId', String(json.data.content[0].id));",
+                                    "  pm.environment.set('orderId', String(json.data.content[0].id));",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/order?page={{orderPage}}&size={{orderSize}}&sort={{orderSort}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "order"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "{{orderPage}}"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "{{orderSize}}"
+                                },
+                                {
+                                    "key": "sort",
+                                    "value": "{{orderSort}}"
+                                }
+                            ]
+                        },
+                        "description": "Lists the student's orders. The first order id is copied into {{orderId}} for reuse in later requests."
+                    }
+                },
+                {
+                    "name": "Get Order Statistics",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "pm.expect(pm.response.json().code).to.eql(200);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/order/statistic-orders",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "order",
+                                "statistic-orders"
+                            ]
+                        },
+                        "description": "Fetches purchase-order summary metrics for the signed-in student."
+                    }
+                },
+                {
+                    "name": "Create Order By Course",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);",
+                                    "if (json.data && json.data.id) {",
+                                    "  pm.collectionVariables.set('orderId', String(json.data.id));",
+                                    "  pm.environment.set('orderId', String(json.data.id));",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/order/create-order-by-course?id={{createOrderCourseId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "order",
+                                "create-order-by-course"
+                            ],
+                            "query": [
+                                {
+                                    "key": "id",
+                                    "value": "{{createOrderCourseId}}"
+                                }
+                            ]
+                        },
+                        "description": "Creates a pending order straight from a seed-valid course id and stores the returned order id into {{orderId}}."
+                    }
+                },
+                {
+                    "name": "Prepare Cart Item For Create Order By Cart Item",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/cart/add-to-cart?id={{prepareCartCourseId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "cart",
+                                "add-to-cart"
+                            ],
+                            "query": [
+                                {
+                                    "key": "id",
+                                    "value": "{{prepareCartCourseId}}"
+                                }
+                            ]
+                        },
+                        "description": "Prepares a fresh cart item before Create Order By Cart Item to avoid dependency on earlier requests."
+                    }
+                },
+                {
+                    "name": "Get Own Cart For Create Order By Cart Item",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);",
+                                    "if (Array.isArray(json.data) && json.data.length > 0) {",
+                                    "  const last = json.data[json.data.length - 1];",
+                                    "  pm.collectionVariables.set('cartItemId', String(last.id));",
+                                    "  pm.environment.set('cartItemId', String(last.id));",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/cart",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "cart"
+                            ]
+                        },
+                        "description": "Refreshes {{cartItemId}} from cart just before Create Order By Cart Item."
+                    }
+                },
+                {
+                    "name": "Create Order By Cart Item",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);",
+                                    "if (json.data && json.data.id) {",
+                                    "  pm.collectionVariables.set('orderId', String(json.data.id));",
+                                    "  pm.environment.set('orderId', String(json.data.id));",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/order/create-order-by-cart-item?id={{cartItemId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "order",
+                                "create-order-by-cart-item"
+                            ],
+                            "query": [
+                                {
+                                    "key": "id",
+                                    "value": "{{cartItemId}}"
+                                }
+                            ]
+                        },
+                        "description": "Creates a pending order from an existing cart item and updates {{orderId}} from the response."
+                    }
+                },
+                {
+                    "name": "Cancel Order",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "pm.expect(pm.response.json().code).to.eql(200);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/order/delete?id={{orderId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "order",
+                                "delete"
+                            ],
+                            "query": [
+                                {
+                                    "key": "id",
+                                    "value": "{{orderId}}"
+                                }
+                            ]
+                        },
+                        "description": "Cancels the selected order id. Use this on pending orders only if you want the API to follow the specification."
+                    }
+                },
+                {
+                    "name": "Get Own Orders - Pending Filter",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);",
+                                    "if (json.data && Array.isArray(json.data.content)) {",
+                                    "  const invalid = json.data.content.filter(o => String(o.status || '').toUpperCase() !== 'PENDING');",
+                                    "  pm.test('Pending filter returns only PENDING when rows exist', function () {",
+                                    "    pm.expect(invalid.length).to.eql(0);",
+                                    "  });",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/order?page={{orderPage}}&size={{orderSize}}&sort={{orderSort}}&statusOrder=PENDING",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "order"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "{{orderPage}}"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "{{orderSize}}"
+                                },
+                                {
+                                    "key": "sort",
+                                    "value": "{{orderSort}}"
+                                },
+                                {
+                                    "key": "statusOrder",
+                                    "value": "PENDING"
+                                }
+                            ]
+                        },
+                        "description": "Lists own orders filtered by PENDING status and validates rows when present."
+                    }
+                },
+                {
+                    "name": "Cancel Order Of Another User (Negative)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Must reject canceling another user order', function () {",
+                                    "  pm.expect(pm.response.code).to.not.eql(200);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/order/delete?id={{otherUserOrderId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "order",
+                                "delete"
+                            ],
+                            "query": [
+                                {
+                                    "key": "id",
+                                    "value": "{{otherUserOrderId}}"
+                                }
+                            ]
+                        },
+                        "description": "Negative test: student must not cancel order that belongs to another account."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Payment",
+            "item": [
+                {
+                    "name": "Create VNPay Payment",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);",
+                                    "if (json.data && json.data.url) {",
+                                    "  pm.collectionVariables.set('paymentUrl', json.data.url);",
+                                    "  pm.environment.set('paymentUrl', json.data.url);",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/payment/create?orderId={{orderId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "payment",
+                                "create"
+                            ],
+                            "query": [
+                                {
+                                    "key": "orderId",
+                                    "value": "{{orderId}}"
+                                }
+                            ]
+                        },
+                        "description": "Creates a VNPay payment URL for the selected order and stores the returned payment redirect URL into {{paymentUrl}}."
+                    }
+                },
+                {
+                    "name": "Create VNPay Payment For Completed Order (Negative)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Completed order should not allow payment URL generation', function () {",
+                                    "  pm.expect(pm.response.code).to.not.eql(200);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/payment/create?orderId={{completedOrderId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "payment",
+                                "create"
+                            ],
+                            "query": [
+                                {
+                                    "key": "orderId",
+                                    "value": "{{completedOrderId}}"
+                                }
+                            ]
+                        },
+                        "description": "Negative test: payment URL should be rejected for COMPLETED orders."
+                    }
+                },
+                {
+                    "name": "Handle VNPay Return Mock",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Payment return responds without client error', function () {",
+                                    "  pm.expect(pm.response.code).to.be.oneOf([200, 301, 302, 303, 307, 308]);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/payment/return?vnp_TxnRef={{vnpTxnRef}}&vnp_TransactionNo={{vnpTransactionNo}}&vnp_Amount={{vnpAmount}}&vnp_PayDate={{vnpPayDate}}&vnp_ResponseCode={{vnpResponseCode}}&vnp_TransactionStatus={{vnpTransactionStatus}}&vnp_SecureHash={{vnpSecureHash}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "payment",
+                                "return"
+                            ],
+                            "query": [
+                                {
+                                    "key": "vnp_TxnRef",
+                                    "value": "{{vnpTxnRef}}"
+                                },
+                                {
+                                    "key": "vnp_TransactionNo",
+                                    "value": "{{vnpTransactionNo}}"
+                                },
+                                {
+                                    "key": "vnp_Amount",
+                                    "value": "{{vnpAmount}}"
+                                },
+                                {
+                                    "key": "vnp_PayDate",
+                                    "value": "{{vnpPayDate}}"
+                                },
+                                {
+                                    "key": "vnp_ResponseCode",
+                                    "value": "{{vnpResponseCode}}"
+                                },
+                                {
+                                    "key": "vnp_TransactionStatus",
+                                    "value": "{{vnpTransactionStatus}}"
+                                },
+                                {
+                                    "key": "vnp_SecureHash",
+                                    "value": "{{vnpSecureHash}}"
+                                }
+                            ]
+                        },
+                        "description": "Template callback request for VNPay return handling. Replace the placeholder hash and transaction values with a valid callback payload from your local or mocked payment flow before expecting a success redirect."
+                    }
+                },
+                {
+                    "name": "Open FE Order Status Mock Success",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('FE mock success page is reachable', function () {",
+                                    "  pm.expect(pm.response.code).to.be.oneOf([200, 301, 302, 304]);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{feBaseUrl}}/order-status?status=success&txnRef={{vnpTxnRef}}&transactionNo={{vnpTransactionNo}}&amount={{vnpAmount}}&payDate={{vnpPayDate}}",
+                            "host": [
+                                "{{feBaseUrl}}"
+                            ],
+                            "path": [
+                                "order-status"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "success"
+                                },
+                                {
+                                    "key": "txnRef",
+                                    "value": "{{vnpTxnRef}}"
+                                },
+                                {
+                                    "key": "transactionNo",
+                                    "value": "{{vnpTransactionNo}}"
+                                },
+                                {
+                                    "key": "amount",
+                                    "value": "{{vnpAmount}}"
+                                },
+                                {
+                                    "key": "payDate",
+                                    "value": "{{vnpPayDate}}"
+                                }
+                            ]
+                        },
+                        "description": "FE mock callback used by Selenium flow. This path does not require VNPay secure hash and is suitable for local tool testing."
+                    }
+                },
+                {
+                    "name": "Open FE Order Status Mock Failed",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('FE mock failed page is reachable', function () {",
+                                    "  pm.expect(pm.response.code).to.be.oneOf([200, 301, 302, 304]);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{feBaseUrl}}/order-status?status=failed&txnRef={{vnpTxnRef}}&transactionNo=0&amount={{vnpAmount}}&payDate={{vnpPayDate}}",
+                            "host": [
+                                "{{feBaseUrl}}"
+                            ],
+                            "path": [
+                                "order-status"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "failed"
+                                },
+                                {
+                                    "key": "txnRef",
+                                    "value": "{{vnpTxnRef}}"
+                                },
+                                {
+                                    "key": "transactionNo",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "amount",
+                                    "value": "{{vnpAmount}}"
+                                },
+                                {
+                                    "key": "payDate",
+                                    "value": "{{vnpPayDate}}"
+                                }
+                            ]
+                        },
+                        "description": "FE mock failed payment page used for negative callback scenarios in local testing."
+                    }
+                }
+            ]
+        }
+    ]
+}
