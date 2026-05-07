@@ -1,4 +1,4 @@
-package com.doan2025.webtoeic.selenium.coursePurchase.pages;
+package com.doan2025.webtoeic.selenium.pages;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -47,8 +47,33 @@ public class CartPage extends BasePage {
     }
 
     public void openMiniCart() {
+        // Mini-cart nằm ở header; mở drawer để thao tác nhanh mà không rời trang hiện tại.
         click(By.cssSelector(".cart-button"));
         waitVisible(By.xpath("//div[contains(@class,'ant-drawer') and contains(@class,'ant-drawer-open')]//*[contains(normalize-space(),'Giỏ hàng')]"));
+    }
+
+    public void assertMiniCartContainsCourse(String title) {
+        waitVisible(By.xpath("//div[contains(@class,'ant-drawer') and contains(@class,'ant-drawer-open')]//li[contains(@class,'cart-item')][.//*[contains(normalize-space(),\"" + escapeXpath(title) + "\")]]"));
+    }
+
+    public void removeCourseFromMiniCart(String title) {
+        // Tìm đúng item theo title trong drawer rồi bấm nút xóa của item đó.
+        click(By.xpath(
+            "//div[contains(@class,'ant-drawer') and contains(@class,'ant-drawer-open')]"
+                + "//li[contains(@class,'cart-item')][.//*[contains(normalize-space(),\""
+                + escapeXpath(title) + "\")]]//button[contains(@class,'ant-btn-dangerous') or .//*[contains(@class,'anticon-delete')]]"));
+    }
+
+    public void confirmRemoveFromMiniCart() {
+        // Confirm modal xóa item trong mini-cart.
+        click(By.xpath("//div[contains(@class,'ant-modal')]//button[contains(@class,'ant-btn-dangerous') and contains(normalize-space(),'Xóa')]"));
+    }
+
+    public void assertMiniCartDoesNotContainCourse(String title) {
+        Assertions.assertTrue(driver.findElements(By.xpath(
+            "//div[contains(@class,'ant-drawer') and contains(@class,'ant-drawer-open')]//li[contains(@class,'cart-item')][.//*[contains(normalize-space(),\""
+                + escapeXpath(title) + "\")]]")).isEmpty(),
+            "Mini cart should not contain course '" + title + "'");
     }
 
     /**
@@ -76,10 +101,12 @@ public class CartPage extends BasePage {
     }
 
     public void clickBuyNowInCartItem(String title) {
+        // Nút Mua ngay của item nằm trong full cart list.
         click(By.xpath("//div[contains(@class,'cart-items')]//li[contains(@class,'ant-list-item')][.//h4[contains(normalize-space(),\"" + escapeXpath(title) + "\")]]//button[contains(normalize-space(),'Mua ngay')]"));
     }
 
     public void clickRemoveInCartItem(String title) {
+        // Xóa item trong full cart (khác flow mini-cart).
         click(By.xpath(
             "//div[contains(@class,'cart-page')]//div[contains(@class,'cart-items')]"
                 + "//li[contains(@class,'ant-list-item')][.//h4[contains(normalize-space(),\""
@@ -94,11 +121,13 @@ public class CartPage extends BasePage {
             "//div[contains(@class,'ant-modal') and .//button[contains(normalize-space(),'Xóa')]]"
                 + "//button[contains(@class,'ant-btn-dangerous') and contains(normalize-space(),'Xóa')]");
 
+        // Chờ 1 trong 2 trạng thái: item đã biến mất sẵn hoặc modal confirm xuất hiện.
         wait.until(d -> d.findElements(itemLocator).isEmpty() || !d.findElements(confirmButton).isEmpty());
 
         if (!driver.findElements(itemLocator).isEmpty() && !driver.findElements(confirmButton).isEmpty()) {
             click(confirmButton);
         }
+        // Xác nhận item thực sự bị xóa khỏi danh sách cart.
         wait.until(d -> d.findElements(By.xpath(
             "//div[contains(@class,'cart-items')]//li[contains(@class,'ant-list-item')][.//h4[contains(normalize-space(),\""
                 + escapeXpath(title) + "\")]]")).isEmpty());
@@ -131,11 +160,13 @@ public class CartPage extends BasePage {
         By successModalOk = By.xpath("//div[contains(@class,'ant-modal') and .//div[contains(@class,'ant-modal-title') and contains(normalize-space(),'Tạo đơn hàng thành công')]]//button[contains(@class,'ant-btn-primary')]");
 
         try {
+            // Chờ tới khi thấy modal success hoặc app đã tự chuyển sang trang orders.
             wait.until(org.openqa.selenium.support.ui.ExpectedConditions.or(
                 org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated(successModalTitle),
                 org.openqa.selenium.support.ui.ExpectedConditions.urlContains("/dashboard/orders")
             ));
         } catch (Exception exception) {
+            // Fallback an toàn: tự mở orders để test vẫn đi tiếp được.
             openPath("/dashboard/orders");
             return;
         }
@@ -150,6 +181,7 @@ public class CartPage extends BasePage {
         try {
             return waitVisible(By.xpath("//div[contains(@class,'cart-items')]//li[contains(@class,'ant-list-item')][.//h4[contains(normalize-space(),\"" + escapeXpath(title) + "\")]]"));
         } catch (Exception exception) {
+            // Log danh sách item hiện có để debug lỗi mismatch title nhanh hơn.
             Assertions.fail("Expected course not found in cart. Target='" + title + "'. Cart diagnostics: " + readCartDiagnostics());
             return null;
         }
@@ -209,6 +241,7 @@ public class CartPage extends BasePage {
         List<WebElement> items = driver.findElements(By.xpath(
             "//div[contains(@class,'cart-items')]//li[contains(@class,'ant-list-item')]"
             + "[.//h4[contains(normalize-space(),\"" + escapeXpath(title) + "\")]]"));
+        // Dùng assertFalse(isEmpty) để giữ message lỗi rõ ràng khi item biến mất bất ngờ.
         Assertions.assertFalse(items.isEmpty(),
             "Course '" + title + "' should still be in cart but is missing");
     }
@@ -217,6 +250,7 @@ public class CartPage extends BasePage {
      * Reads the cart badge count from the header icon.
      */
     public int readCartBadgeCount() {
+        // Badge có thể không render khi count=0, nên trả 0 nếu không tìm thấy element.
         List<WebElement> badges = driver.findElements(By.cssSelector(".cart-badge .ant-badge-count"));
         if (badges.isEmpty()) {
             return 0;

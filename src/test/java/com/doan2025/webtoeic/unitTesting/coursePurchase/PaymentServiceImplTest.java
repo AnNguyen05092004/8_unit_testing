@@ -40,6 +40,9 @@ import jakarta.servlet.http.HttpServletRequest;
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceImplTest {
 
+    // Cac dependency duoc mock de test service theo tung nhanh logic,
+    // khong goi DB/network that su.
+
     @Mock
     private JwtUtil jwtUtil;
     @Mock
@@ -61,21 +64,29 @@ class PaymentServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        // Du lieu nen chung cho nhieu test.
         student = new User();
         student.setId(1L);
         student.setEmail("student@gmail.com");
 
         course = Course.builder().id(22L).title("TOEIC Listening").price(499_000L).build();
 
+        // Set cac field private trong PaymentServiceImpl de test chay on dinh,
+        // khong phu thuoc vao env file ben ngoai.
         ReflectionTestUtils.setField(paymentService, "FE", "http://localhost:5173");
         ReflectionTestUtils.setField(paymentService, "BE", "http://localhost:8888/");
         ReflectionTestUtils.setField(paymentService, "VNP_RETURN_URL", "");
         ReflectionTestUtils.setField(paymentService, "MOCK_PAYMENT_ENABLED", true);
     }
 
+    // =========================================================================
+    // createVNPayPayment
+    // =========================================================================
+
     @Test
     void createVNPayPayment_TC_UT_PAY_001_shouldReturnMockCallbackUrlWhenMockEnabled() {
-        // TC-UT-PAY-001: Ở chế độ mock, hệ thống phải trả URL callback thành công để FE test luồng tiếp theo.
+        // TC-UT-PAY-001
+        // Arrange: tao order PENDING + orderDetail hop le.
         Orders pendingOrder = Orders.builder()
                 .id(700L)
                 .user(student)
@@ -96,8 +107,10 @@ class PaymentServiceImplTest {
         when(orderRepository.findById(pendingOrder.getId())).thenReturn(Optional.of(pendingOrder));
         when(orderDetailRepository.findByOrderId(pendingOrder.getId())).thenReturn(Optional.of(orderDetail));
 
+        // Act: goi ham can test.
         PaymentResponse response = paymentService.createVNPayPayment(pendingOrder.getId(), request);
 
+        // Assert: mock mode tra URL callback success.
         assertNotNull(response);
         assertEquals("success", response.getStatus());
         assertTrue(response.getURL().contains("vnp_ResponseCode=00"));
@@ -105,160 +118,8 @@ class PaymentServiceImplTest {
     }
 
     @Test
-    void handleVNPayReturn_TC_UT_PAY_002_shouldMarkOrderCompletedAndCreateEnrollment() {
-        // TC-UT-PAY-002: Callback success phải cập nhật order COMPLETED và tạo enrollment nếu chưa có.
-        Orders pendingOrder = Orders.builder()
-                .id(801L)
-                .user(student)
-                .status(EStatusOrder.PENDING)
-                .build();
-
-        OrderDetail detail = OrderDetail.builder()
-                .id(802L)
-                .orders(pendingOrder)
-                .course(course)
-                .priceAtPurchase(499_000L)
-                .build();
-
-        when(request.getParameter("vnp_TxnRef")).thenReturn("20260413120000_801");
-        when(request.getParameter("vnp_ResponseCode")).thenReturn("00");
-        when(request.getParameter("vnp_TransactionNo")).thenReturn("123456");
-        when(request.getParameter("vnp_Amount")).thenReturn("49900000");
-        when(request.getParameter("vnp_PayDate")).thenReturn("20260413120500");
-
-        when(orderRepository.findById(801L)).thenReturn(Optional.of(pendingOrder));
-        when(orderDetailRepository.findByOrderId(801L)).thenReturn(Optional.of(detail));
-        when(enrollmentRepository.existsByUserAndCourse(student, course)).thenReturn(false);
-
-        RedirectView redirectView = paymentService.handleVNPayReturn(request);
-
-        assertTrue(redirectView.getUrl().contains("/order-status?status=success"));
-        assertEquals(EStatusOrder.COMPLETED, pendingOrder.getStatus());
-
-        verify(orderRepository).save(pendingOrder);
-        ArgumentCaptor<com.doan2025.webtoeic.domain.Enrollment> enrollmentCaptor =
-                ArgumentCaptor.forClass(com.doan2025.webtoeic.domain.Enrollment.class);
-        verify(enrollmentRepository).save(enrollmentCaptor.capture());
-        assertEquals(student, enrollmentCaptor.getValue().getUser());
-        assertEquals(course, enrollmentCaptor.getValue().getCourse());
-    }
-
-    @Test
-    void handleVNPayReturn_TC_UT_PAY_003_shouldNotCreateDuplicateEnrollmentForCompletedOrder() {
-        // TC-UT-PAY-003: Callback success lặp lại không được tạo enrollment/order update trùng.
-        Orders completedOrder = Orders.builder()
-                .id(901L)
-                .user(student)
-                .status(EStatusOrder.COMPLETED)
-                .build();
-
-        OrderDetail detail = OrderDetail.builder()
-                .id(902L)
-                .orders(completedOrder)
-                .course(course)
-                .priceAtPurchase(499_000L)
-                .build();
-
-        when(request.getParameter("vnp_TxnRef")).thenReturn("20260413120000_901");
-        when(request.getParameter("vnp_ResponseCode")).thenReturn("00");
-        when(request.getParameter("vnp_TransactionNo")).thenReturn("223344");
-        when(request.getParameter("vnp_Amount")).thenReturn("49900000");
-        when(request.getParameter("vnp_PayDate")).thenReturn("20260413121000");
-
-        when(orderRepository.findById(901L)).thenReturn(Optional.of(completedOrder));
-        when(orderDetailRepository.findByOrderId(901L)).thenReturn(Optional.of(detail));
-        when(enrollmentRepository.existsByUserAndCourse(student, course)).thenReturn(true);
-
-        RedirectView redirectView = paymentService.handleVNPayReturn(request);
-
-        assertTrue(redirectView.getUrl().contains("/order-status?status=success"));
-        verify(orderRepository, never()).save(any(Orders.class));
-        verify(enrollmentRepository, never()).save(any(com.doan2025.webtoeic.domain.Enrollment.class));
-    }
-
-    @Test
-    void handleVNPayReturn_TC_UT_PAY_004_shouldRedirectFailWhenTxnRefIsInvalid() {
-        // TC-UT-PAY-004: TxnRef sai định dạng phải chuyển fail và không tác động DB.
-        when(request.getParameter("vnp_TxnRef")).thenReturn("invalid_txn");
-        when(request.getParameter("vnp_ResponseCode")).thenReturn("00");
-
-        RedirectView redirectView = paymentService.handleVNPayReturn(request);
-
-        assertEquals("http://localhost:5173/order-status?status=fail", redirectView.getUrl());
-        verify(orderRepository, never()).save(any(Orders.class));
-        verify(enrollmentRepository, never()).save(any(com.doan2025.webtoeic.domain.Enrollment.class));
-    }
-
-    @Test
-    void handleVNPayReturn_TC_UT_PAY_005_shouldRedirectToFailWhenResponseCodeIsNotSuccess() {
-        // TC-UT-PAY-005: Callback với mã lỗi khác "00" phải redirect về fail mà không cập nhật DB.
-        when(request.getParameter("vnp_TxnRef")).thenReturn(null);
-        when(request.getParameter("vnp_ResponseCode")).thenReturn("07");
-
-        RedirectView redirectView = paymentService.handleVNPayReturn(request);
-
-        assertTrue(redirectView.getUrl().contains("/order-status?status=fail"));
-        verify(orderRepository, never()).save(any(Orders.class));
-        verify(enrollmentRepository, never()).save(any(com.doan2025.webtoeic.domain.Enrollment.class));
-    }
-
-    @Test
-    void createVNPayPayment_TC_UT_PAY_006_shouldThrowHasPaidWhenOrderAlreadyCompleted() {
-        // TC-UT-PAY-006: Không được tạo link thanh toán nếu order đã ở trạng thái COMPLETED.
-        Orders completedOrder = Orders.builder()
-                .id(702L)
-                .user(student)
-                .status(EStatusOrder.COMPLETED)
-                .totalAmount(499_000L)
-                .build();
-        OrderDetail detail = OrderDetail.builder()
-                .id(703L)
-                .orders(completedOrder)
-                .course(course)
-                .priceAtPurchase(499_000L)
-                .build();
-
-        when(request.getHeader("Authorization")).thenReturn("Bearer fake-token");
-        when(jwtUtil.getEmailFromToken(request)).thenReturn(student.getEmail());
-        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
-        when(orderRepository.findById(702L)).thenReturn(Optional.of(completedOrder));
-        when(orderDetailRepository.findByOrderId(702L)).thenReturn(Optional.of(detail));
-
-        WebToeicException ex = assertThrows(WebToeicException.class,
-                () -> paymentService.createVNPayPayment(702L, request));
-
-        assertEquals(ResponseCode.HAS_PAID, ex.getResponseCode());
-    }
-
-    @Test
-    void createVNPayPayment_TC_UT_PAY_007_shouldThrowNotPermissionWhenUserIsNotOrderOwner() {
-        // TC-UT-PAY-007: Không được thanh toán order của người dùng khác.
-        User owner = new User();
-        owner.setId(99L);
-        owner.setEmail("other@gmail.com");
-
-        Orders ownerOrder = Orders.builder()
-                .id(800L)
-                .user(owner)
-                .status(EStatusOrder.PENDING)
-                .totalAmount(499_000L)
-                .build();
-
-        when(request.getHeader("Authorization")).thenReturn("Bearer fake-token");
-        when(jwtUtil.getEmailFromToken(request)).thenReturn(student.getEmail());
-        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
-        when(orderRepository.findById(800L)).thenReturn(Optional.of(ownerOrder));
-
-        WebToeicException ex = assertThrows(WebToeicException.class,
-                () -> paymentService.createVNPayPayment(800L, request));
-
-        assertEquals(ResponseCode.NOT_PERMISSION, ex.getResponseCode());
-        verify(orderDetailRepository, never()).findByOrderId(any(Long.class));
-    }
-
-    @Test
-    void createVNPayPayment_TC_UT_PAY_008_shouldBuildRealVNPayUrlWhenMockDisabled() {
-        // TC-UT-PAY-008: Khi mock=false, phải xây dựng URL VNPay thực với đủ tham số và HMAC hash.
+    void createVNPayPayment_TC_UT_PAY_002_shouldBuildRealVNPayUrlWhenMockDisabled() {
+        // TC-UT-PAY-002
         ReflectionTestUtils.setField(paymentService, "MOCK_PAYMENT_ENABLED", false);
         ReflectionTestUtils.setField(paymentService, "SECRET_KEY", "test-secret-key-for-unit-testing");
         ReflectionTestUtils.setField(paymentService, "ORDER_TYPE", "other");
@@ -296,62 +157,8 @@ class PaymentServiceImplTest {
     }
 
     @Test
-    void createVNPayPayment_TC_UT_PAY_009_shouldThrowUserNotExistedWhenAuthorizationHeaderMissing() {
-        // TC-UT-PAY-009: Thiếu Authorization thì không trích xuất được email và phải báo USER không tồn tại.
-        when(request.getHeader("Authorization")).thenReturn(null);
-        when(userRepository.findByEmail("")).thenReturn(Optional.empty());
-
-        WebToeicException ex = assertThrows(WebToeicException.class,
-                () -> paymentService.createVNPayPayment(700L, request));
-
-        assertEquals(ResponseCode.NOT_EXISTED, ex.getResponseCode());
-        verify(orderRepository, never()).findById(any(Long.class));
-    }
-
-    @Test
-    void createVNPayPayment_TC_UT_PAY_010_shouldThrowUserNotExistedWhenAuthorizationHeaderIsNotBearer() {
-        // TC-UT-PAY-010: Authorization sai prefix cũng phải đi nhánh không đọc JWT.
-        when(request.getHeader("Authorization")).thenReturn("Basic abc123");
-        when(userRepository.findByEmail("")).thenReturn(Optional.empty());
-
-        WebToeicException ex = assertThrows(WebToeicException.class,
-                () -> paymentService.createVNPayPayment(700L, request));
-
-        assertEquals(ResponseCode.NOT_EXISTED, ex.getResponseCode());
-        verify(orderRepository, never()).findById(any(Long.class));
-    }
-
-    @Test
-    void createVNPayPayment_TC_UT_PAY_011_shouldThrowInvalidWhenAmountIsNegative() {
-        // TC-UT-PAY-011: Tổng tiền âm phải bị chặn ở nhánh validation amount.
-        Orders invalidOrder = Orders.builder()
-                .id(711L)
-                .user(student)
-                .status(EStatusOrder.PENDING)
-                .totalAmount(-1L)
-                .build();
-        OrderDetail detail = OrderDetail.builder()
-                .id(712L)
-                .orders(invalidOrder)
-                .course(course)
-                .priceAtPurchase(499_000L)
-                .build();
-
-        when(request.getHeader("Authorization")).thenReturn("Bearer fake-token");
-        when(jwtUtil.getEmailFromToken(request)).thenReturn(student.getEmail());
-        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
-        when(orderRepository.findById(711L)).thenReturn(Optional.of(invalidOrder));
-        when(orderDetailRepository.findByOrderId(711L)).thenReturn(Optional.of(detail));
-
-        WebToeicException ex = assertThrows(WebToeicException.class,
-                () -> paymentService.createVNPayPayment(711L, request));
-
-        assertEquals(ResponseCode.INVALID, ex.getResponseCode());
-    }
-
-    @Test
-    void createVNPayPayment_TC_UT_PAY_012_shouldUseConfiguredReturnUrlAndSkipNullOrEmptyParams() {
-        // TC-UT-PAY-012: Khi cấu hình return URL riêng và có param null/rỗng, URL tạo ra vẫn hợp lệ và bỏ qua param đó.
+    void createVNPayPayment_TC_UT_PAY_003_shouldUseConfiguredReturnUrlAndSkipNullOrEmptyParams() {
+        // TC-UT-PAY-003
         ReflectionTestUtils.setField(paymentService, "MOCK_PAYMENT_ENABLED", false);
         ReflectionTestUtils.setField(paymentService, "SECRET_KEY", "test-secret-key-for-unit-testing");
         ReflectionTestUtils.setField(paymentService, "ORDER_TYPE", "");
@@ -390,8 +197,8 @@ class PaymentServiceImplTest {
     }
 
     @Test
-    void createVNPayPayment_TC_UT_PAY_013_shouldUseConfiguredReturnUrlInMockMode() {
-        // TC-UT-PAY-013: Ở mock mode, callback URL cũng phải ưu tiên VNP_RETURN_URL nếu được cấu hình.
+    void createVNPayPayment_TC_UT_PAY_004_shouldUseConfiguredReturnUrlInMockMode() {
+        // TC-UT-PAY-004
         ReflectionTestUtils.setField(paymentService, "VNP_RETURN_URL", "https://example.test/payment/mock-return");
 
         Orders pendingOrder = Orders.builder()
@@ -421,9 +228,260 @@ class PaymentServiceImplTest {
     }
 
     @Test
-    void handleVNPayReturn_TC_UT_PAY_014_shouldRedirectFailWhenTxnRefIsNull() {
-        // TC-UT-PAY-014: TxnRef null phải rơi vào nhánh fail của extractOrderId.
-        when(request.getParameter("vnp_TxnRef")).thenReturn(null);
+    void createVNPayPayment_TC_UT_PAY_005_shouldThrowHasPaidWhenOrderAlreadyCompleted() {
+        // TC-UT-PAY-005
+        Orders completedOrder = Orders.builder()
+                .id(702L)
+                .user(student)
+                .status(EStatusOrder.COMPLETED)
+                .totalAmount(499_000L)
+                .build();
+        OrderDetail detail = OrderDetail.builder()
+                .id(703L)
+                .orders(completedOrder)
+                .course(course)
+                .priceAtPurchase(499_000L)
+                .build();
+
+        when(request.getHeader("Authorization")).thenReturn("Bearer fake-token");
+        when(jwtUtil.getEmailFromToken(request)).thenReturn(student.getEmail());
+        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
+        when(orderRepository.findById(702L)).thenReturn(Optional.of(completedOrder));
+        when(orderDetailRepository.findByOrderId(702L)).thenReturn(Optional.of(detail));
+
+        WebToeicException ex = assertThrows(WebToeicException.class,
+                () -> paymentService.createVNPayPayment(702L, request));
+
+        assertEquals(ResponseCode.HAS_PAID, ex.getResponseCode());
+    }
+
+    @Test
+    void createVNPayPayment_TC_UT_PAY_006_shouldThrowNotPermissionWhenUserIsNotOrderOwner() {
+        // TC-UT-PAY-006
+        // Arrange: tao order thuoc user khac.
+        User owner = new User();
+        owner.setId(99L);
+        owner.setEmail("other@gmail.com");
+
+        Orders ownerOrder = Orders.builder()
+                .id(800L)
+                .user(owner)
+                .status(EStatusOrder.PENDING)
+                .totalAmount(499_000L)
+                .build();
+
+        when(request.getHeader("Authorization")).thenReturn("Bearer fake-token");
+        when(jwtUtil.getEmailFromToken(request)).thenReturn(student.getEmail());
+        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
+        when(orderRepository.findById(800L)).thenReturn(Optional.of(ownerOrder));
+
+        // Act + Assert: service phai chan va nem NOT_PERMISSION.
+        WebToeicException ex = assertThrows(WebToeicException.class,
+                () -> paymentService.createVNPayPayment(800L, request));
+
+        assertEquals(ResponseCode.NOT_PERMISSION, ex.getResponseCode());
+        // Khi sai owner thi khong can query orderDetail nua.
+        verify(orderDetailRepository, never()).findByOrderId(any(Long.class));
+    }
+
+    @Test
+    void createVNPayPayment_TC_UT_PAY_007_shouldThrowInvalidWhenAmountIsNegative() {
+        // TC-UT-PAY-007
+        Orders invalidOrder = Orders.builder()
+                .id(711L)
+                .user(student)
+                .status(EStatusOrder.PENDING)
+                .totalAmount(-1L)
+                .build();
+        OrderDetail detail = OrderDetail.builder()
+                .id(712L)
+                .orders(invalidOrder)
+                .course(course)
+                .priceAtPurchase(499_000L)
+                .build();
+
+        when(request.getHeader("Authorization")).thenReturn("Bearer fake-token");
+        when(jwtUtil.getEmailFromToken(request)).thenReturn(student.getEmail());
+        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
+        when(orderRepository.findById(711L)).thenReturn(Optional.of(invalidOrder));
+        when(orderDetailRepository.findByOrderId(711L)).thenReturn(Optional.of(detail));
+
+        WebToeicException ex = assertThrows(WebToeicException.class,
+                () -> paymentService.createVNPayPayment(711L, request));
+
+        assertEquals(ResponseCode.INVALID, ex.getResponseCode());
+    }
+
+    @Test
+    void createVNPayPayment_TC_UT_PAY_008_shouldThrowUserNotExistedWhenAuthorizationHeaderMissing() {
+        // TC-UT-PAY-008
+        // Arrange: khong co Authorization header.
+        when(request.getHeader("Authorization")).thenReturn(null);
+        when(userRepository.findByEmail("")).thenReturn(Optional.empty());
+
+        // Act + Assert: parse user that bai -> NOT_EXISTED.
+        WebToeicException ex = assertThrows(WebToeicException.class,
+                () -> paymentService.createVNPayPayment(700L, request));
+
+        assertEquals(ResponseCode.NOT_EXISTED, ex.getResponseCode());
+        // User khong hop le thi khong duoc query order.
+        verify(orderRepository, never()).findById(any(Long.class));
+    }
+
+    @Test
+    void createVNPayPayment_TC_UT_PAY_009_shouldThrowUserNotExistedWhenAuthorizationHeaderIsNotBearer() {
+        // TC-UT-PAY-009
+        when(request.getHeader("Authorization")).thenReturn("Basic abc123");
+        when(userRepository.findByEmail("")).thenReturn(Optional.empty());
+
+        WebToeicException ex = assertThrows(WebToeicException.class,
+                () -> paymentService.createVNPayPayment(700L, request));
+
+        assertEquals(ResponseCode.NOT_EXISTED, ex.getResponseCode());
+        verify(orderRepository, never()).findById(any(Long.class));
+    }
+
+    @Test
+    void createVNPayPayment_TC_UT_PAY_010_shouldThrowWhenOrderNotFound() {
+        // TC-UT-PAY-010
+        when(request.getHeader("Authorization")).thenReturn("Bearer fake-token");
+        when(jwtUtil.getEmailFromToken(request)).thenReturn(student.getEmail());
+        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
+        when(orderRepository.findById(9999L)).thenReturn(Optional.empty());
+
+        WebToeicException ex = assertThrows(WebToeicException.class,
+                () -> paymentService.createVNPayPayment(9999L, request));
+
+        assertEquals(ResponseCode.NOT_EXISTED, ex.getResponseCode());
+        verify(orderDetailRepository, never()).findByOrderId(any(Long.class));
+    }
+
+    
+        @Test
+    void createVNPayPayment_TC_UT_PAY_011_shouldThrowWhenOrderDetailNotFound() {
+        // TC-UT-PAY-011: Order tìm thấy và đúng owner, status PENDING, amount hợp lệ,
+        // nhưng orderDetail không tồn tại → phải ném NOT_EXISTED.
+        Orders pendingOrder = Orders.builder()
+                .id(720L)
+                .user(student)
+                .status(EStatusOrder.PENDING)
+                .totalAmount(499_000L)
+                .build();
+
+        when(request.getHeader("Authorization")).thenReturn("Bearer fake-token");
+        when(jwtUtil.getEmailFromToken(request)).thenReturn(student.getEmail());
+        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
+        when(orderRepository.findById(720L)).thenReturn(Optional.of(pendingOrder));
+        when(orderDetailRepository.findByOrderId(720L)).thenReturn(Optional.empty());
+
+        WebToeicException ex = assertThrows(WebToeicException.class,
+                () -> paymentService.createVNPayPayment(720L, request));
+
+        assertEquals(ResponseCode.NOT_EXISTED, ex.getResponseCode());
+    }
+
+    
+        @Test
+    void createVNPayPayment_TC_UT_PAY_012_shouldThrowWhenBearerTokenIsValidButUserNotFound() {
+        // TC-UT-PAY-012: Header Bearer hợp lệ, parse được email nhưng user không tồn tại.
+        when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
+        when(jwtUtil.getEmailFromToken(request)).thenReturn("ghost@gmail.com");
+        when(userRepository.findByEmail("ghost@gmail.com")).thenReturn(Optional.empty());
+
+        WebToeicException ex = assertThrows(WebToeicException.class,
+                () -> paymentService.createVNPayPayment(700L, request));
+
+        assertEquals(ResponseCode.NOT_EXISTED, ex.getResponseCode());
+        verify(orderRepository, never()).findById(any(Long.class));
+    }
+
+    // =========================================================================
+    // handleVNPayReturn
+    // =========================================================================
+
+    @Test
+    void handleVNPayReturn_TC_UT_PAY_013_shouldMarkOrderCompletedAndCreateEnrollment() {
+        // TC-UT-PAY-013
+        // Arrange: callback thanh cong + order dang PENDING.
+        Orders pendingOrder = Orders.builder()
+                .id(801L)
+                .user(student)
+                .status(EStatusOrder.PENDING)
+                .build();
+
+        OrderDetail detail = OrderDetail.builder()
+                .id(802L)
+                .orders(pendingOrder)
+                .course(course)
+                .priceAtPurchase(499_000L)
+                .build();
+
+        when(request.getParameter("vnp_TxnRef")).thenReturn("20260413120000_801");
+        when(request.getParameter("vnp_ResponseCode")).thenReturn("00");
+        when(request.getParameter("vnp_TransactionNo")).thenReturn("123456");
+        when(request.getParameter("vnp_Amount")).thenReturn("49900000");
+        when(request.getParameter("vnp_PayDate")).thenReturn("20260413120500");
+
+        when(orderRepository.findById(801L)).thenReturn(Optional.of(pendingOrder));
+        when(orderDetailRepository.findByOrderId(801L)).thenReturn(Optional.of(detail));
+        when(enrollmentRepository.existsByUserAndCourse(student, course)).thenReturn(false);
+
+        // Act
+        RedirectView redirectView = paymentService.handleVNPayReturn(request);
+
+        // Assert: redirect success, order chuyen COMPLETED, tao enrollment.
+        assertTrue(redirectView.getUrl().contains("/order-status?status=success"));
+        assertEquals(EStatusOrder.COMPLETED, pendingOrder.getStatus());
+
+        verify(orderRepository).save(pendingOrder);
+        ArgumentCaptor<com.doan2025.webtoeic.domain.Enrollment> enrollmentCaptor =
+                ArgumentCaptor.forClass(com.doan2025.webtoeic.domain.Enrollment.class);
+        verify(enrollmentRepository).save(enrollmentCaptor.capture());
+        assertEquals(student, enrollmentCaptor.getValue().getUser());
+        assertEquals(course, enrollmentCaptor.getValue().getCourse());
+    }
+
+    @Test
+    void handleVNPayReturn_TC_UT_PAY_014_shouldNotCreateDuplicateEnrollmentForCompletedOrder() {
+        // TC-UT-PAY-014
+        // Arrange: order da COMPLETED va enrollment da ton tai.
+        Orders completedOrder = Orders.builder()
+                .id(901L)
+                .user(student)
+                .status(EStatusOrder.COMPLETED)
+                .build();
+
+        OrderDetail detail = OrderDetail.builder()
+                .id(902L)
+                .orders(completedOrder)
+                .course(course)
+                .priceAtPurchase(499_000L)
+                .build();
+
+        when(request.getParameter("vnp_TxnRef")).thenReturn("20260413120000_901");
+        when(request.getParameter("vnp_ResponseCode")).thenReturn("00");
+        when(request.getParameter("vnp_TransactionNo")).thenReturn("223344");
+        when(request.getParameter("vnp_Amount")).thenReturn("49900000");
+        when(request.getParameter("vnp_PayDate")).thenReturn("20260413121000");
+
+        when(orderRepository.findById(901L)).thenReturn(Optional.of(completedOrder));
+        when(orderDetailRepository.findByOrderId(901L)).thenReturn(Optional.of(detail));
+        when(enrollmentRepository.existsByUserAndCourse(student, course)).thenReturn(true);
+
+        // Act
+        RedirectView redirectView = paymentService.handleVNPayReturn(request);
+
+        // Assert: khong save lai order va khong tao enrollment trung.
+        assertTrue(redirectView.getUrl().contains("/order-status?status=success"));
+        verify(orderRepository, never()).save(any(Orders.class));
+        verify(enrollmentRepository, never()).save(any(com.doan2025.webtoeic.domain.Enrollment.class));
+    }
+
+    
+        @Test
+    void handleVNPayReturn_TC_UT_PAY_015_shouldRedirectFailWhenTxnRefIsInvalid() {
+        // TC-UT-PAY-015
+        when(request.getParameter("vnp_TxnRef")).thenReturn("invalid_txn");
         when(request.getParameter("vnp_ResponseCode")).thenReturn("00");
 
         RedirectView redirectView = paymentService.handleVNPayReturn(request);
@@ -433,13 +491,65 @@ class PaymentServiceImplTest {
         verify(enrollmentRepository, never()).save(any(com.doan2025.webtoeic.domain.Enrollment.class));
     }
 
+    
+        @Test
+    void handleVNPayReturn_TC_UT_PAY_016_shouldRedirectToFailWhenResponseCodeIsNotSuccess() {
+        // TC-UT-PAY-016
+        when(request.getParameter("vnp_TxnRef")).thenReturn(null);
+        when(request.getParameter("vnp_ResponseCode")).thenReturn("07");
+
+        RedirectView redirectView = paymentService.handleVNPayReturn(request);
+
+        assertTrue(redirectView.getUrl().contains("/order-status?status=fail"));
+        verify(orderRepository, never()).save(any(Orders.class));
+        verify(enrollmentRepository, never()).save(any(com.doan2025.webtoeic.domain.Enrollment.class));
+    }
+
+    
+        @Test
+    void handleVNPayReturn_TC_UT_PAY_017_shouldRedirectFailWhenOrderNotFoundForValidTxnRef() {
+        // TC-UT-PAY-017
+        when(request.getParameter("vnp_TxnRef")).thenReturn("20260504120000_9999");
+        when(request.getParameter("vnp_ResponseCode")).thenReturn("00");
+        when(orderRepository.findById(9999L)).thenReturn(Optional.empty());
+
+        RedirectView redirectView = paymentService.handleVNPayReturn(request);
+
+        assertTrue(redirectView.getUrl().contains("?status=fail"));
+        verify(orderRepository, never()).save(any(Orders.class));
+        verify(enrollmentRepository, never()).save(any(com.doan2025.webtoeic.domain.Enrollment.class));
+    }
+
+    
+        @Test
+    void handleVNPayReturn_TC_UT_PAY_018_shouldRedirectFailWhenOrderDetailNotFoundForValidTxnRef() {
+        // TC-UT-PAY-018
+        Orders pendingOrder = Orders.builder()
+                .id(802L)
+                .user(student)
+                .status(EStatusOrder.PENDING)
+                .build();
+
+        when(request.getParameter("vnp_TxnRef")).thenReturn("20260504120000_802");
+        when(request.getParameter("vnp_ResponseCode")).thenReturn("00");
+        when(request.getParameter("vnp_TransactionNo")).thenReturn("999888");
+        when(request.getParameter("vnp_Amount")).thenReturn("49900000");
+        when(request.getParameter("vnp_PayDate")).thenReturn("20260504120500");
+        when(orderRepository.findById(802L)).thenReturn(Optional.of(pendingOrder));
+        when(orderDetailRepository.findByOrderId(802L)).thenReturn(Optional.empty());
+
+        RedirectView redirectView = paymentService.handleVNPayReturn(request);
+
+        assertTrue(redirectView.getUrl().contains("?status=fail"));
+        verify(enrollmentRepository, never()).save(any(com.doan2025.webtoeic.domain.Enrollment.class));
+    }
+
     @Test
-        void handleVNPayReturn_TC_UT_PAY_015_specSaysCancelledOrderCannotBeCompletedByCallback() {
-                // TC-UT-PAY-015: Spec STP_PAY_023 cho rằng success callback chỉ thiết lập PENDING orders
-        // để COMPLETED. Nó không nên apply cho CANCELLED orders.
-        // Code không kiểm tra status là PENDING trước, nó chỉ kiểm tra != COMPLETED.
-        // => CANCELLED order sẽ được đổi thành COMPLETED (sai spec)
-        // => TEST NÀY SỂ FAIL.
+    void handleVNPayReturn_TC_UT_PAY_019_specSaysCancelledOrderCannotBeCompletedByCallback() {
+        // TC-UT-PAY-019 (SPEC MISMATCH - FAIL)
+        // Spec STP_PAY_023: success callback should only complete PENDING orders.
+        // Code checks != COMPLETED (not == PENDING), so CANCELLED order gets set to COMPLETED.
+        // THIS TEST WILL FAIL intentionally.
         Orders cancelledOrder = Orders.builder()
                 .id(950L)
                 .user(student)
@@ -464,9 +574,9 @@ class PaymentServiceImplTest {
 
         paymentService.handleVNPayReturn(request);
 
-        // Spec: CANCELLED orders không nên được update, save never called
-        // Actual: code call save với status = COMPLETED (do setStatus)
-        // Test: assert save NEVER được gọi, nhưng code gọi nó anyway → FAIL
+        // Spec: CANCELLED order must not be updated; save should never be called.
+        // Actual: code sets status=COMPLETED and calls save -> test FAILS.
         verify(orderRepository, never()).save(any(Orders.class));
     }
+
 }

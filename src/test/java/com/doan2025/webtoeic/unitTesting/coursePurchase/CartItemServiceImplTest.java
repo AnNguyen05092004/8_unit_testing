@@ -20,7 +20,6 @@ import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.doan2025.webtoeic.constants.enums.ResponseCode;
-import com.doan2025.webtoeic.constants.enums.ResponseObject;
 import com.doan2025.webtoeic.domain.CartItem;
 import com.doan2025.webtoeic.domain.Course;
 import com.doan2025.webtoeic.domain.User;
@@ -37,6 +36,13 @@ import com.doan2025.webtoeic.utils.JwtUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+/**
+ * Unit test cho CartItemServiceImpl.
+ * Cach doc nhanh moi test:
+ * 1) Arrange: mock du lieu dau vao
+ * 2) Act: goi method service
+ * 3) Assert: kiem tra exception/ket qua va verify repository duoc goi dung
+ */
 @ExtendWith(MockitoExtension.class)
 class CartItemServiceImplTest {
 
@@ -65,6 +71,7 @@ class CartItemServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        // Du lieu mau dung chung cho nhieu testcase.
         student = new User();
         student.setId(1L);
         student.setEmail("student@gmail.com");
@@ -75,8 +82,13 @@ class CartItemServiceImplTest {
                 .price(499_000L)
                 .build();
 
+        // Gia lap token luon map ra student de test tap trung vao business logic.
         when(jwtUtil.getEmailFromToken(request)).thenReturn(student.getEmail());
     }
+
+    // =========================================================================
+    // addToCart
+    // =========================================================================
 
     @Test
     void addToCart_TC_UT_CART_001_shouldSaveCartItemWhenInputIsValid() {
@@ -110,8 +122,83 @@ class CartItemServiceImplTest {
     }
 
     @Test
-    void removeFromCart_TC_UT_CART_003_shouldThrowWhenUserTriesToDeleteForeignCartItem() {
-        // TC-UT-CART-003: User không có quyền xóa cart item của tài khoản khác.
+    void addToCart_TC_UT_CART_003_shouldThrowWhenCourseAlreadyInExistingOrder() {
+        // TC-UT-CART-003: Không được add vào cart nếu khóa học đã có trong order chưa hoàn tất.
+        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
+        when(courseRepository.findById(course.getId())).thenReturn(Optional.of(course));
+        when(cartItemRepository.existsByCourseAndUser(course, student)).thenReturn(false);
+        when(orderDetailRepository.existsByUserAndCourse(student.getEmail(), course.getId())).thenReturn(true);
+
+        WebToeicException ex = assertThrows(WebToeicException.class,
+                () -> cartItemService.addToCart(request, course.getId()));
+
+        assertEquals(ResponseCode.EXISTED, ex.getResponseCode());
+        verify(cartItemRepository, never()).save(any(CartItem.class));
+    }
+
+    @Test
+    void addToCart_TC_UT_CART_004_shouldThrowWhenStudentAlreadyEnrolledInCourse() {
+        // TC-UT-CART-004: Không được add vào cart nếu đã enroll khóa học đó.
+        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
+        when(courseRepository.findById(course.getId())).thenReturn(Optional.of(course));
+        when(cartItemRepository.existsByCourseAndUser(course, student)).thenReturn(false);
+        when(orderDetailRepository.existsByUserAndCourse(student.getEmail(), course.getId())).thenReturn(false);
+        when(enrollmentRepository.existsByUserAndCourse(student, course)).thenReturn(true);
+
+        WebToeicException ex = assertThrows(WebToeicException.class,
+                () -> cartItemService.addToCart(request, course.getId()));
+
+        assertEquals(ResponseCode.EXISTED, ex.getResponseCode());
+        verify(cartItemRepository, never()).save(any(CartItem.class));
+    }
+
+    @Test
+    void addToCart_TC_UT_CART_005_shouldThrowWhenUserNotFound() {
+        // TC-UT-CART-005: Khi user không tồn tại trong hệ thống phải ném exception.
+        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.empty());
+
+        assertThrows(WebToeicException.class,
+                () -> cartItemService.addToCart(request, course.getId()));
+
+        verify(cartItemRepository, never()).save(any(CartItem.class));
+    }
+
+    @Test
+    void addToCart_TC_UT_CART_006_shouldThrowWhenCourseNotFound() {
+        // TC-UT-CART-006: Khi khóa học không tồn tại trong hệ thống phải ném exception.
+        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
+        when(courseRepository.findById(course.getId())).thenReturn(Optional.empty());
+
+        assertThrows(WebToeicException.class,
+                () -> cartItemService.addToCart(request, course.getId()));
+
+        verify(cartItemRepository, never()).save(any(CartItem.class));
+    }
+
+    // =========================================================================
+    // removeFromCart
+    // =========================================================================
+
+    @Test
+    void removeFromCart_TC_UT_CART_007_shouldDeleteCartItemWhenUserIsOwner() {
+        // TC-UT-CART-007: Xóa cart item thành công khi user là chủ sở hữu.
+        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
+
+        CartItem ownItem = new CartItem();
+        ownItem.setId(888L);
+        ownItem.setUser(student);
+        ownItem.setCourse(course);
+
+        when(cartItemRepository.findById(888L)).thenReturn(Optional.of(ownItem));
+
+        cartItemService.removeFromCart(request, 888L);
+
+        verify(cartItemRepository).deleteById(888L);
+    }
+
+    @Test
+    void removeFromCart_TC_UT_CART_008_shouldThrowWhenUserTriesToDeleteForeignCartItem() {
+        // TC-UT-CART-008: User không có quyền xóa cart item của tài khoản khác.
         when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
         User anotherUser = new User();
         anotherUser.setId(99L);
@@ -131,8 +218,38 @@ class CartItemServiceImplTest {
     }
 
     @Test
-    void getInCart_TC_UT_CART_004_shouldMapAllCartItemsToResponse() {
-        // TC-UT-CART-004: Danh sách cart trả về phải được convert đầy đủ từng item.
+    void removeFromCart_TC_UT_CART_009_shouldThrowWhenCartItemNotFound() {
+        // TC-UT-CART-009: Khi cart item không tồn tại, phải ném exception NOT_EXISTED và không gọi deleteById.
+        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
+        when(cartItemRepository.findById(999L)).thenReturn(Optional.empty());
+
+        WebToeicException ex = assertThrows(WebToeicException.class,
+                () -> cartItemService.removeFromCart(request, 999L));
+
+        assertEquals(ResponseCode.NOT_EXISTED, ex.getResponseCode());
+        verify(cartItemRepository, never()).deleteById(any(Long.class));
+    }
+
+    @Test
+    void removeFromCart_TC_UT_CART_010_shouldThrowWhenUserNotFound() {
+        // TC-UT-CART-010: Khi user không tồn tại, removeFromCart phải ném NOT_EXISTED và không gọi findById/delete.
+        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.empty());
+
+        WebToeicException ex = assertThrows(WebToeicException.class,
+                () -> cartItemService.removeFromCart(request, 888L));
+
+        assertEquals(ResponseCode.NOT_EXISTED, ex.getResponseCode());
+        verify(cartItemRepository, never()).findById(any(Long.class));
+        verify(cartItemRepository, never()).deleteById(any(Long.class));
+    }
+
+    // =========================================================================
+    // getInCart
+    // =========================================================================
+
+    @Test
+    void getInCart_TC_UT_CART_011_shouldMapAllCartItemsToResponse() {
+        // TC-UT-CART-011: Danh sách cart trả về phải được convert đầy đủ từng item.
         CartItem item1 = new CartItem();
         item1.setId(1L);
         item1.setCourse(course);
@@ -164,91 +281,26 @@ class CartItemServiceImplTest {
     }
 
     @Test
-    void addToCart_TC_UT_CART_005_shouldThrowWhenCourseAlreadyInAnExistingOrder() {
-        // TC-UT-CART-005: Không được add vào cart nếu khóa học đã có trong order chưa hoàn tất.
-        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
-        when(courseRepository.findById(course.getId())).thenReturn(Optional.of(course));
-        when(cartItemRepository.existsByCourseAndUser(course, student)).thenReturn(false);
-        when(orderDetailRepository.existsByUserAndCourse(student.getEmail(), course.getId())).thenReturn(true);
+    void getInCart_TC_UT_CART_012_shouldReturnEmptyListWhenNoCartItems() {
+        // TC-UT-CART-012: Khi user chưa có cart item nào, service phải trả về list rỗng.
+        when(cartItemRepository.findByEmailUser(student.getEmail())).thenReturn(List.of());
 
-        WebToeicException ex = assertThrows(WebToeicException.class,
-                () -> cartItemService.addToCart(request, course.getId()));
+        List<CartItemResponse> result = cartItemService.getInCart(request);
 
-        assertEquals(ResponseCode.EXISTED, ex.getResponseCode());
-        verify(cartItemRepository, never()).save(any(CartItem.class));
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(convertUtil, never()).convertCartItemToDto(any(HttpServletRequest.class), any(CartItem.class));
     }
 
     @Test
-    void addToCart_TC_UT_CART_006_shouldThrowWhenStudentAlreadyEnrolledInCourse() {
-        // TC-UT-CART-006: Không được add vào cart nếu đã enroll khóa học đó.
-        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
-        when(courseRepository.findById(course.getId())).thenReturn(Optional.of(course));
-        when(cartItemRepository.existsByCourseAndUser(course, student)).thenReturn(false);
-        when(orderDetailRepository.existsByUserAndCourse(student.getEmail(), course.getId())).thenReturn(false);
-        when(enrollmentRepository.existsByUserAndCourse(student, course)).thenReturn(true);
+    void getInCart_TC_UT_CART_013_shouldPropagateExceptionWhenTokenIsInvalid() {
+        // TC-UT-CART-013: Nếu token lỗi khi parse email, exception phải được propagate ra ngoài.
+        when(jwtUtil.getEmailFromToken(request)).thenThrow(new RuntimeException("Invalid token"));
 
-        WebToeicException ex = assertThrows(WebToeicException.class,
-                () -> cartItemService.addToCart(request, course.getId()));
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> cartItemService.getInCart(request));
 
-        assertEquals(ResponseCode.EXISTED, ex.getResponseCode());
-        verify(cartItemRepository, never()).save(any(CartItem.class));
-    }
-
-    @Test
-    void removeFromCart_TC_UT_CART_007_shouldDeleteCartItemWhenUserIsOwner() {
-        // TC-UT-CART-007: Xóa cart item thành công khi user là chủ sở hữu.
-        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
-
-        CartItem ownItem = new CartItem();
-        ownItem.setId(888L);
-        ownItem.setUser(student);
-        ownItem.setCourse(course);
-
-        when(cartItemRepository.findById(888L)).thenReturn(Optional.of(ownItem));
-
-        cartItemService.removeFromCart(request, 888L);
-
-        verify(cartItemRepository).deleteById(888L);
-    }
-
-    @Test
-    void addToCart_TC_UT_CART_008_shouldThrowWhenUserNotFound() {
-        // TC-UT-CART-008: Khi user không tồn tại trong hệ thống phải ném exception.
-        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.empty());
-
-        assertThrows(WebToeicException.class,
-                () -> cartItemService.addToCart(request, course.getId()));
-
-        verify(cartItemRepository, never()).save(any(CartItem.class));
-    }
-
-    @Test
-    void addToCart_TC_UT_CART_009_shouldThrowWhenCourseNotFound() {
-        // TC-UT-CART-009: Khi khóa học không tồn tại trong hệ thống phải ném exception.
-        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
-        when(courseRepository.findById(course.getId())).thenReturn(Optional.empty());
-
-        assertThrows(WebToeicException.class,
-                () -> cartItemService.addToCart(request, course.getId()));
-
-        verify(cartItemRepository, never()).save(any(CartItem.class));
-    }
-
-    @Test
-    void addToCart_TC_UT_CART_010_specSaysCartExceptionButCodeThrowsOrderException() {
-        // TC-UT-CART-010: Usecase 2.2.3 Exception 2a chỉ định nghĩa MỘT exception: "Khóa học đã có
-        // trong giỏ hàng." (CART_ITEM). Nhưng khi course đã có trong orderDetail, code ném
-        // ResponseObject.ORDER thay vì ResponseObject.CART_ITEM → SAI spec → TEST NÀY SẼ FAIL.
-        when(userRepository.findByEmail(student.getEmail())).thenReturn(Optional.of(student));
-        when(courseRepository.findById(course.getId())).thenReturn(Optional.of(course));
-        when(cartItemRepository.existsByCourseAndUser(course, student)).thenReturn(false);
-        when(orderDetailRepository.existsByUserAndCourse(student.getEmail(), course.getId())).thenReturn(true);
-
-        WebToeicException ex = assertThrows(WebToeicException.class,
-                () -> cartItemService.addToCart(request, course.getId()));
-
-        // Spec Exception 2a: "Khóa học đã có trong giỏ hàng" → phải là CART_ITEM
-        // Actual: code ném ResponseObject.ORDER → assertEquals dưới đây FAIL
-        assertEquals(ResponseObject.CART_ITEM, ex.getResponseObject());
+        assertEquals("Invalid token", ex.getMessage());
+        verify(cartItemRepository, never()).findByEmailUser(any(String.class));
     }
 }

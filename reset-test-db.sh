@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SEED_FILE="${SEED_FILE:-$SCRIPT_DIR/Sample_data.sql/sample_test_data_payment.sql}"
+SEED_FILE="${SEED_FILE:-$SCRIPT_DIR/Sample_data.sql/sample_test_data_full.sql}"
 SCHEMA_FILE="${SCHEMA_FILE:-$SCRIPT_DIR/BE-develop/doan21.sql}"
 DB_NAME="${DB_NAME:-doand21}"
 MYSQL_HOST="${MYSQL_HOST:-127.0.0.1}"
