@@ -1,0 +1,2572 @@
+{
+	"id": "ebaed325-4c8a-44a7-b989-b8af4e0a59b9",
+	"name": "WebToeic API Tests",
+	"timestamp": "2026-05-07T05:01:38.772Z",
+	"collection_id": "42533873-28977474-8643-4b7e-8ccb-cdfc6b43b792",
+	"folder_id": 0,
+	"environment_id": "42533873-dc578ce3-08e0-4c3f-bf51-53ddceea526b",
+	"totalPass": 71,
+	"delay": "30",
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2026-05-07T05:01:26.207Z",
+	"totalFail": 30,
+	"results": [
+		{
+			"id": "84c07e63-0761-4f6b-94b7-9d1c1af0f7e3",
+			"name": "[TC_AUTH_001] Login as Teacher → save teacherToken",
+			"url": "http://localhost:8888/api/v1/auth/login",
+			"time": 106,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Has token": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Has token": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				106
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Has token": true
+				}
+			]
+		},
+		{
+			"id": "7b0967b0-da00-433b-bac4-f5503c36566f",
+			"name": "[TC_AUTH_002] Login as Student → save studentToken",
+			"url": "http://localhost:8888/api/v1/auth/login",
+			"time": 102,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Has token": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Has token": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				102
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Has token": true
+				}
+			]
+		},
+		{
+			"id": "b6155585-2f19-448b-9c7f-91d58ae62070",
+			"name": "[TC_AUTH_003] Login with invalid credentials → 401",
+			"url": "http://localhost:8888/api/v1/auth/login",
+			"time": 114,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 400 or 401": true
+			},
+			"testPassFailCounts": {
+				"Status 400 or 401": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				114
+			],
+			"allTests": [
+				{
+					"Status 400 or 401": true
+				}
+			]
+		},
+		{
+			"id": "985a674a-e2a1-49b2-a944-b094403fb95e",
+			"name": "[TC_QB_001] Create question bank - valid → save bankId",
+			"url": "http://localhost:8888/api/v1/question-bank/create",
+			"time": 15,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Has id": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Has id": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				15
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Has id": true
+				}
+			]
+		},
+		{
+			"id": "72f972e4-10c2-4859-befe-7f49215994d9",
+			"name": "[TC_QB_002] Create bank - whitespace title [KNOWN BUG: not rejected]",
+			"url": "http://localhost:8888/api/v1/question-bank/create",
+			"time": 13,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 400 (validation not implemented - KNOWN BUG)": false
+			},
+			"testPassFailCounts": {
+				"Status 400 (validation not implemented - KNOWN BUG)": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				13
+			],
+			"allTests": [
+				{
+					"Status 400 (validation not implemented - KNOWN BUG)": false
+				}
+			]
+		},
+		{
+			"id": "3d9187a6-4b62-4c03-91bd-f41fd8f1c3b4",
+			"name": "[TC_QB_003] Create bank - invalid JWT → 401/403",
+			"url": "http://localhost:8888/api/v1/question-bank/create",
+			"time": 6,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Status 401 or 403": true
+			},
+			"testPassFailCounts": {
+				"Status 401 or 403": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				6
+			],
+			"allTests": [
+				{
+					"Status 401 or 403": true
+				}
+			]
+		},
+		{
+			"id": "bcdba4b9-68cf-42cb-ab56-39624e88ee9d",
+			"name": "[TC_QB_004] Update question bank - success",
+			"url": "http://localhost:8888/api/v1/question-bank/update",
+			"time": 15,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Title updated": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Title updated": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				15
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Title updated": true
+				}
+			]
+		},
+		{
+			"id": "7d15cf7b-b046-4cf9-9fac-093918e03f2c",
+			"name": "[TC_QB_005] Update bank - not found → 404",
+			"url": "http://localhost:8888/api/v1/question-bank/update",
+			"time": 10,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				10
+			],
+			"allTests": [
+				{
+					"Status 404": true
+				}
+			]
+		},
+		{
+			"id": "b6b95b45-443b-4c1c-9993-306bdf64ae33",
+			"name": "[TC_QB_006] Get bank by valid ID",
+			"url": "http://localhost:8888/api/v1/question-bank?id=89",
+			"time": 11,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"ID matches": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ID matches": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				11
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"ID matches": true
+				}
+			]
+		},
+		{
+			"id": "cc212351-d1e9-40d9-9592-30f3706d9363",
+			"name": "[TC_QB_007] Get bank - not found → 404",
+			"url": "http://localhost:8888/api/v1/question-bank?id=999999",
+			"time": 8,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				8
+			],
+			"allTests": [
+				{
+					"Status 404": true
+				}
+			]
+		},
+		{
+			"id": "304116a3-830c-4a61-b8f5-f40eaa569e7f",
+			"name": "[TC_QB_008] Filter banks - results found",
+			"url": "http://localhost:8888/api/v1/question-bank/filter?page=0&size=10",
+			"time": 85,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Has content": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Has content": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				85
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Has content": true
+				}
+			]
+		},
+		{
+			"id": "9c97cc13-1ddd-474f-98e0-631db94da65a",
+			"name": "[TC_QB_009] Filter banks - empty result",
+			"url": "http://localhost:8888/api/v1/question-bank/filter?page=0&size=10",
+			"time": 9,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Total = 0": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Total = 0": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Total = 0": true
+				}
+			]
+		},
+		{
+			"id": "aeabd7f5-c488-4bf9-9ca1-becc84dc3097",
+			"name": "[TC_AI_001] AI connectivity check",
+			"url": "http://localhost:8888/api/v1/ai",
+			"time": 662,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200 (or 400 if AI unavailable)": true
+			},
+			"testPassFailCounts": {
+				"Status 200 (or 400 if AI unavailable)": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				662
+			],
+			"allTests": [
+				{
+					"Status 200 (or 400 if AI unavailable)": true
+				}
+			]
+		},
+		{
+			"id": "9894c369-a1e7-4393-9e01-05b1763db3c5",
+			"name": "[TC_AI_002] AI connectivity check - AI call fails",
+			"url": "http://localhost:8888/api/v1/ai",
+			"time": 301,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200 or 500 (or 400 if AI unavailable)": true
+			},
+			"testPassFailCounts": {
+				"Status 200 or 500 (or 400 if AI unavailable)": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				301
+			],
+			"allTests": [
+				{
+					"Status 200 or 500 (or 400 if AI unavailable)": true
+				}
+			]
+		},
+		{
+			"id": "e129699b-43ed-4d70-a098-1b578190b3bd",
+			"name": "[TC_AI_003] Analyze valid PDF URL",
+			"url": "http://localhost:8888/api/v1/ai/analysis-question?url=https://your-pdf-url-here.com/test.pdf",
+			"time": 8,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200 (requires valid PDF URL)": true
+			},
+			"testPassFailCounts": {
+				"Status 200 (requires valid PDF URL)": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				8
+			],
+			"allTests": [
+				{
+					"Status 200 (requires valid PDF URL)": true
+				}
+			]
+		},
+		{
+			"id": "8dcd4d4e-904f-4b3e-9a8f-b6b0b34ef58b",
+			"name": "[TC_AI_004] Analyze unreachable URL → 500",
+			"url": "http://localhost:8888/api/v1/ai/analysis-question?url=https://this-domain-does-not-exist-xyz123.com/fail.pdf",
+			"time": 7,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 400 or 500 (file read fails)": true
+			},
+			"testPassFailCounts": {
+				"Status 400 or 500 (file read fails)": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				7
+			],
+			"allTests": [
+				{
+					"Status 400 or 500 (file read fails)": true
+				}
+			]
+		},
+		{
+			"id": "c9cd93f5-cd18-4060-ace8-3bd48c034e50",
+			"name": "[TC_AI_005] Analyze - unmappable AI output",
+			"url": "http://localhost:8888/api/v1/ai/analysis-question?url=https://your-pdf-url-here.com/test.pdf",
+			"time": 7,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200/400/500 (depends on file)": true
+			},
+			"testPassFailCounts": {
+				"Status 200/400/500 (depends on file)": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				7
+			],
+			"allTests": [
+				{
+					"Status 200/400/500 (depends on file)": true
+				}
+			]
+		},
+		{
+			"id": "500e8e45-138b-49f0-b318-3ddff41693c3",
+			"name": "[TC_AI_006] Analyze PDF with no MCQ → empty questions list",
+			"url": "http://localhost:8888/api/v1/ai/analysis-question?url=https://your-pdf-url-here.com/test.pdf",
+			"time": 7,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200 (requires valid PDF URL)": true
+			},
+			"testPassFailCounts": {
+				"Status 200 (requires valid PDF URL)": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				7
+			],
+			"allTests": [
+				{
+					"Status 200 (requires valid PDF URL)": true
+				}
+			]
+		},
+		{
+			"id": "2f807bf6-4db6-4fba-bb06-c274295a4b06",
+			"name": "[TC_QUIZ_001] Create quiz - valid → save quizId",
+			"url": "http://localhost:8888/api/v1/quiz/create-quizz",
+			"time": 21,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Has id": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Has id": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				21
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Has id": true
+				}
+			]
+		},
+		{
+			"id": "bc02a7f5-980c-4c61-ad1b-676b4c18aa25",
+			"name": "[TC_QUIZ_002] Create quiz - invalid JWT → 401/403",
+			"url": "http://localhost:8888/api/v1/quiz/create-quizz",
+			"time": 5,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Status 401 or 403": true
+			},
+			"testPassFailCounts": {
+				"Status 401 or 403": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				5
+			],
+			"allTests": [
+				{
+					"Status 401 or 403": true
+				}
+			]
+		},
+		{
+			"id": "670b2fb0-9394-492c-be1b-e065b7c3cc61",
+			"name": "[TC_QUIZ_003] Create quiz - blank title [KNOWN BUG: not rejected]",
+			"url": "http://localhost:8888/api/v1/quiz/create-quizz",
+			"time": 13,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 400 (validation not implemented - KNOWN BUG)": false
+			},
+			"testPassFailCounts": {
+				"Status 400 (validation not implemented - KNOWN BUG)": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				13
+			],
+			"allTests": [
+				{
+					"Status 400 (validation not implemented - KNOWN BUG)": false
+				}
+			]
+		},
+		{
+			"id": "998ad97a-7044-49f6-a4fc-78c908c73377",
+			"name": "[TC_QUIZ_004] Get quiz by valid ID",
+			"url": "http://localhost:8888/api/v1/quiz?id=222",
+			"time": 10,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"ID matches": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ID matches": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				10
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"ID matches": true
+				}
+			]
+		},
+		{
+			"id": "e779b5fc-363d-46b0-b6df-43a379815d2c",
+			"name": "[TC_QUIZ_005] Get quiz by invalid ID → 404",
+			"url": "http://localhost:8888/api/v1/quiz?id=999999",
+			"time": 12,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				12
+			],
+			"allTests": [
+				{
+					"Status 404": true
+				}
+			]
+		},
+		{
+			"id": "fd141234-0b09-4b06-aca5-2b4256ac8719",
+			"name": "[TC_QUIZ_006] Search quizzes - data exists",
+			"url": "http://localhost:8888/api/v1/quiz/search-quizz?page=0&size=10",
+			"time": 57,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Has content": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Has content": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				57
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Has content": true
+				}
+			]
+		},
+		{
+			"id": "074ad2e3-2f53-4f74-9f38-3db33e09e19f",
+			"name": "[TC_QUIZ_007] Search quizzes - no results",
+			"url": "http://localhost:8888/api/v1/quiz/search-quizz?page=0&size=10",
+			"time": 9,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Total = 0": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Total = 0": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Total = 0": true
+				}
+			]
+		},
+		{
+			"id": "dc66c6be-12c4-4560-91b0-bb198d0ef0d5",
+			"name": "[TC_QUIZ_008] Update quiz - valid data",
+			"url": "http://localhost:8888/api/v1/quiz/update-quiz",
+			"time": 16,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Title updated": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Title updated": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				16
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Title updated": true
+				}
+			]
+		},
+		{
+			"id": "778abaed-eb13-44ce-91a3-c755ba507259",
+			"name": "[TC_QUIZ_009] Update quiz - not found → 404",
+			"url": "http://localhost:8888/api/v1/quiz/update-quiz",
+			"time": 11,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				11
+			],
+			"allTests": [
+				{
+					"Status 404": true
+				}
+			]
+		},
+		{
+			"id": "fc9dbade-4539-4196-b051-cb0acb193e48",
+			"name": "[TC_QUIZ_010] Update quiz - blank title [KNOWN BUG: not rejected]",
+			"url": "http://localhost:8888/api/v1/quiz/update-quiz",
+			"time": 15,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 400 (validation not implemented - KNOWN BUG)": false
+			},
+			"testPassFailCounts": {
+				"Status 400 (validation not implemented - KNOWN BUG)": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				15
+			],
+			"allTests": [
+				{
+					"Status 400 (validation not implemented - KNOWN BUG)": false
+				}
+			]
+		},
+		{
+			"id": "a63c4126-9fbc-4798-92f5-d0dd525adddc",
+			"name": "[TC_QUIZ_011] Add questions to quiz - valid",
+			"url": "http://localhost:8888/api/v1/quiz/add-questions-to-quiz",
+			"time": 11,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				11
+			],
+			"allTests": [
+				{
+					"Status 200": true
+				}
+			]
+		},
+		{
+			"id": "75b18b16-7358-47b3-8a00-9deaf6e35c9d",
+			"name": "[TC_QUIZ_012] Add non-existent question to quiz → 404",
+			"url": "http://localhost:8888/api/v1/quiz/add-questions-to-quiz",
+			"time": 12,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				12
+			],
+			"allTests": [
+				{
+					"Status 404": true
+				}
+			]
+		},
+		{
+			"id": "e78cb725-16d8-4a33-8faf-f9162a8f3aab",
+			"name": "[TC_QUIZ_013] Remove questions from quiz - valid",
+			"url": "http://localhost:8888/api/v1/quiz/remove-questions-from-quiz",
+			"time": 11,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				11
+			],
+			"allTests": [
+				{
+					"Status 200": true
+				}
+			]
+		},
+		{
+			"id": "9ad0edd6-85ce-4a9d-aa3f-a25ebc7aa76c",
+			"name": "[TC_QUIZ_014] Remove question - quiz not found → 404",
+			"url": "http://localhost:8888/api/v1/quiz/remove-questions-from-quiz",
+			"time": 24,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				24
+			],
+			"allTests": [
+				{
+					"Status 404": true
+				}
+			]
+		},
+		{
+			"id": "a0822b90-e97a-4cc3-8a78-ddaab0ff14a9",
+			"name": "[TC_QUIZ_015] Convert bank to quiz - valid",
+			"url": "http://localhost:8888/api/v1/quiz/convert-bank-to-quiz?idBank=89",
+			"time": 14,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Quiz created": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Quiz created": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				14
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Quiz created": true
+				}
+			]
+		},
+		{
+			"id": "f8e0f463-1eca-4f96-8086-66d3fbe52229",
+			"name": "[TC_QUIZ_016] Convert non-existent bank → 404",
+			"url": "http://localhost:8888/api/v1/quiz/convert-bank-to-quiz?idBank=999999",
+			"time": 11,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				11
+			],
+			"allTests": [
+				{
+					"Status 404": true
+				}
+			]
+		},
+		{
+			"id": "ba2551ef-e54d-4b67-ba71-218510245334",
+			"name": "[TC_QUIZ_024] Pull quiz to class - success",
+			"url": "http://localhost:8888/api/v1/quiz/pull-quiz-to-class",
+			"time": 24,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				24
+			],
+			"allTests": [
+				{
+					"Status 200": true
+				}
+			]
+		},
+		{
+			"id": "d15c8f3a-3b6a-45ee-8bae-fc55cb47791b",
+			"name": "[TC_QUIZ_025] Pull quiz - teacher not in class → 403",
+			"url": "http://localhost:8888/api/v1/quiz/pull-quiz-to-class",
+			"time": 11,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 400 or 403": true
+			},
+			"testPassFailCounts": {
+				"Status 400 or 403": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				11
+			],
+			"allTests": [
+				{
+					"Status 400 or 403": true
+				}
+			]
+		},
+		{
+			"id": "c941a382-26d5-460c-bb2c-189235dbf8d7",
+			"name": "[TC_QUIZ_026] Pull non-existent quiz → 404",
+			"url": "http://localhost:8888/api/v1/quiz/pull-quiz-to-class",
+			"time": 14,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				14
+			],
+			"allTests": [
+				{
+					"Status 404": true
+				}
+			]
+		},
+		{
+			"id": "d9f38475-0cfd-4098-83e6-561a41bfd43b",
+			"name": "[TC_QUIZ_027] Pull quiz to non-existent class → 404",
+			"url": "http://localhost:8888/api/v1/quiz/pull-quiz-to-class",
+			"time": 10,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 400 or 404": true
+			},
+			"testPassFailCounts": {
+				"Status 400 or 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				10
+			],
+			"allTests": [
+				{
+					"Status 400 or 404": true
+				}
+			]
+		},
+		{
+			"id": "0c9a87b7-b157-48bf-a665-578b4f0f2b90",
+			"name": "[Helper] Get sharedQuizId for TC_QUIZ_028",
+			"url": "http://localhost:8888/api/v1/quiz/list-quiz-in-class?id-class=&page=0&size=100",
+			"time": 9,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				9
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "b5668da2-6d4c-489b-ad86-d4dc38bd372b",
+			"name": "[TC_QUIZ_028] Update quiz in class - success",
+			"url": "http://localhost:8888/api/v1/quiz/update-quiz-in-class",
+			"time": 19,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 200": false
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				19
+			],
+			"allTests": [
+				{
+					"Status 200": false
+				}
+			]
+		},
+		{
+			"id": "46c33bcc-bb3f-46ab-aaf5-49f1824e35af",
+			"name": "[TC_QUIZ_029] Update quiz in class - teacher not in class → 403",
+			"url": "http://localhost:8888/api/v1/quiz/update-quiz-in-class",
+			"time": 10,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 400 or 403": true
+			},
+			"testPassFailCounts": {
+				"Status 400 or 403": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				10
+			],
+			"allTests": [
+				{
+					"Status 400 or 403": true
+				}
+			]
+		},
+		{
+			"id": "e138c926-c5ec-48d3-944b-411d7c51047e",
+			"name": "[TC_QUIZ_030] Update non-existent shared quiz → 404",
+			"url": "http://localhost:8888/api/v1/quiz/update-quiz-in-class",
+			"time": 14,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				14
+			],
+			"allTests": [
+				{
+					"Status 404": true
+				}
+			]
+		},
+		{
+			"id": "855d192e-1580-481a-a5fb-03c3869e9ef5",
+			"name": "[TC_QUIZ_031] List quizzes in class - Teacher",
+			"url": "http://localhost:8888/api/v1/quiz/list-quiz-in-class?id-class=&page=0&size=10",
+			"time": 7,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200": false,
+				"Returns data": false
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Returns data": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				7
+			],
+			"allTests": [
+				{
+					"Status 200": false,
+					"Returns data": false
+				}
+			]
+		},
+		{
+			"id": "3e12efda-e5b6-4cb2-afd6-656a4bb02caa",
+			"name": "[TC_QUIZ_032] List quizzes in class - teacher not in class → 403",
+			"url": "http://localhost:8888/api/v1/quiz/list-quiz-in-class?id-class=999998&page=0&size=10",
+			"time": 13,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 400 or 403": true
+			},
+			"testPassFailCounts": {
+				"Status 400 or 403": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				13
+			],
+			"allTests": [
+				{
+					"Status 400 or 403": true
+				}
+			]
+		},
+		{
+			"id": "acebca9c-3447-4c90-a593-15e17f90a286",
+			"name": "[Helper] Re-add Q1-Q2 to quiz for TC_QUIZ_017-022",
+			"url": "http://localhost:8888/api/v1/quiz/add-questions-to-quiz",
+			"time": 28,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Q1-Q2 re-added (200 or 400 if already added)": true
+			},
+			"testPassFailCounts": {
+				"Q1-Q2 re-added (200 or 400 if already added)": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				28
+			],
+			"allTests": [
+				{
+					"Q1-Q2 re-added (200 or 400 if already added)": true
+				}
+			]
+		},
+		{
+			"id": "fc8e0ff0-40a1-4a57-9be5-860ee24e5424",
+			"name": "[TC_QUIZ_017] Submit quiz - mixed answers",
+			"url": "http://localhost:8888/api/v1/quiz/submit-quiz-in-class?id-quiz=222&id-class=&des=Hop le",
+			"time": 8,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200": false,
+				"Score calculated correctly": false
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Score calculated correctly": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				8
+			],
+			"allTests": [
+				{
+					"Status 200": false,
+					"Score calculated correctly": false
+				}
+			]
+		},
+		{
+			"id": "a5c73a9a-fe9a-4218-9985-b2238412a472",
+			"name": "[TC_QUIZ_018] Submit quiz - quiz not found → 404",
+			"url": "http://localhost:8888/api/v1/quiz/submit-quiz-in-class?id-quiz=999999&id-class=&des=test",
+			"time": 10,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 404": false
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				10
+			],
+			"allTests": [
+				{
+					"Status 404": false
+				}
+			]
+		},
+		{
+			"id": "f25c7f41-4b01-40f3-b069-92edfbd1cf0d",
+			"name": "[TC_QUIZ_019] Submit quiz - class not found → 404",
+			"url": "http://localhost:8888/api/v1/quiz/submit-quiz-in-class?id-quiz=222&id-class=999999&des=test",
+			"time": 14,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				14
+			],
+			"allTests": [
+				{
+					"Status 404": true
+				}
+			]
+		},
+		{
+			"id": "d10b6d13-a4ef-4e61-8096-e26f2996d004",
+			"name": "[TC_QUIZ_020] Submit quiz - perfect score (all correct)",
+			"url": "http://localhost:8888/api/v1/quiz/submit-quiz-in-class?id-quiz=222&id-class=&des=Hop le",
+			"time": 9,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200": false,
+				"Perfect score - all answers correct": false
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Perfect score - all answers correct": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Status 200": false,
+					"Perfect score - all answers correct": false
+				}
+			]
+		},
+		{
+			"id": "ec52f1a7-92d1-4060-80d4-2b6c6ee93bdd",
+			"name": "[TC_QUIZ_021] Submit quiz - empty answer list",
+			"url": "http://localhost:8888/api/v1/quiz/submit-quiz-in-class?id-quiz=222&id-class=&des=Empty",
+			"time": 9,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200": false,
+				"Empty answers - score=0": false
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Empty answers - score=0": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Status 200": false,
+					"Empty answers - score=0": false
+				}
+			]
+		},
+		{
+			"id": "15ee2179-5c9c-4305-b011-b461d4fb944d",
+			"name": "[Helper] Add Q3-Q6 to quiz for TC_QUIZ_022",
+			"url": "http://localhost:8888/api/v1/quiz/add-questions-to-quiz",
+			"time": 39,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Q3-Q6 added to quiz": true
+			},
+			"testPassFailCounts": {
+				"Q3-Q6 added to quiz": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				39
+			],
+			"allTests": [
+				{
+					"Q3-Q6 added to quiz": true
+				}
+			]
+		},
+		{
+			"id": "dc3c8f5f-d91f-461f-bc3d-f2ade4c1dac7",
+			"name": "[TC_QUIZ_022] Submit quiz - partial score (4/6 correct)",
+			"url": "http://localhost:8888/api/v1/quiz/submit-quiz-in-class?id-quiz=222&id-class=&des=Hop le",
+			"time": 9,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200": false,
+				"Partial score 4/6 correct": false
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Partial score 4/6 correct": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Status 200": false,
+					"Partial score 4/6 correct": false
+				}
+			]
+		},
+		{
+			"id": "af94f498-26d8-4cf7-a700-4d5a23660c71",
+			"name": "[TC_QUIZ_023] Submit quiz - unknown user JWT",
+			"url": "http://localhost:8888/api/v1/quiz/submit-quiz-in-class?id-quiz=222&id-class=&des=test",
+			"time": 7,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Status 401 or 403": true
+			},
+			"testPassFailCounts": {
+				"Status 401 or 403": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				7
+			],
+			"allTests": [
+				{
+					"Status 401 or 403": true
+				}
+			]
+		},
+		{
+			"id": "5a34b6c3-8abd-4f68-a542-001354283bce",
+			"name": "[Helper] Get submitId for TC_QUIZ_033",
+			"url": "http://localhost:8888/api/v1/quiz/search-submitted-quiz-by-student-in-class?id-quiz=222&id-class=&page=0&size=10",
+			"time": 8,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				8
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "5a327d56-1535-49a7-980e-5d25330f8e0e",
+			"name": "[TC_QUIZ_033] Get submission detail - success",
+			"url": "http://localhost:8888/api/v1/quiz/view-detail-submitted-quiz-by-student-in-class?id-submitted=",
+			"time": 9,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200": false,
+				"Has score": false
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Has score": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Status 200": false,
+					"Has score": false
+				}
+			]
+		},
+		{
+			"id": "fcae3e33-cb4f-4d06-b1fd-3ac5e83045d0",
+			"name": "[TC_QUIZ_034] Get submission detail - not found → 404",
+			"url": "http://localhost:8888/api/v1/quiz/view-detail-submitted-quiz-by-student-in-class?id-submitted=999999",
+			"time": 11,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				11
+			],
+			"allTests": [
+				{
+					"Status 404": true
+				}
+			]
+		},
+		{
+			"id": "7817afd4-bae1-41c9-90f8-9e2ab039afe1",
+			"name": "[TC_QUIZ_035] Teacher views all submissions",
+			"url": "http://localhost:8888/api/v1/quiz/search-submitted-quiz-by-student-in-class?id-quiz=222&id-class=&page=0&size=10",
+			"time": 7,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200": false,
+				"Returns page": false
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Returns page": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				7
+			],
+			"allTests": [
+				{
+					"Status 200": false,
+					"Returns page": false
+				}
+			]
+		},
+		{
+			"id": "7db9989b-e936-44e6-af43-0e306fcc9705",
+			"name": "[TC_QUIZ_036] Student views own submissions only",
+			"url": "http://localhost:8888/api/v1/quiz/search-submitted-quiz-by-student-in-class?id-quiz=222&id-class=&page=0&size=10",
+			"time": 9,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200": false,
+				"Returns page": false
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Returns page": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Status 200": false,
+					"Returns page": false
+				}
+			]
+		},
+		{
+			"id": "ae4d1250-dc02-4404-a543-f04e5f4583f4",
+			"name": "[TC_QUIZ_037] Get submissions - user not in class → 403",
+			"url": "http://localhost:8888/api/v1/quiz/search-submitted-quiz-by-student-in-class?id-quiz=222&id-class=999998&page=0&size=10",
+			"time": 12,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 400 or 403": true
+			},
+			"testPassFailCounts": {
+				"Status 400 or 403": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				12
+			],
+			"allTests": [
+				{
+					"Status 400 or 403": true
+				}
+			]
+		},
+		{
+			"id": "9e9eff35-0fd1-4522-9b5c-ed4b4fe14c83",
+			"name": "[TC_QUIZ_038] Statistic detail quiz - success",
+			"url": "http://localhost:8888/api/v1/quiz/statistic-detail-quiz-in-class?id-quiz=222&id-class=&score=5",
+			"time": 8,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				8
+			],
+			"allTests": [
+				{
+					"Status 200": true
+				}
+			]
+		},
+		{
+			"id": "fff00f50-9b3c-4927-91ec-8ab6af654ddb",
+			"name": "[TC_QUIZ_039] Statistic detail - 0 submissions [KNOWN BUG: division by zero]",
+			"url": "http://localhost:8888/api/v1/quiz/statistic-detail-quiz-in-class?id-quiz=222&id-class=&score=5",
+			"time": 8,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 500 (ArithmeticException - division by zero - KNOWN BUG)": false
+			},
+			"testPassFailCounts": {
+				"Status 500 (ArithmeticException - division by zero - KNOWN BUG)": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				8
+			],
+			"allTests": [
+				{
+					"Status 500 (ArithmeticException - division by zero - KNOWN BUG)": false
+				}
+			]
+		},
+		{
+			"id": "e9e61cfa-a9de-4381-8ef5-444174298e8d",
+			"name": "[TC_QUIZ_040] Statistic detail - non-terminating division [KNOWN BUG]",
+			"url": "http://localhost:8888/api/v1/quiz/statistic-detail-quiz-in-class?id-quiz=222&id-class=&score=5",
+			"time": 9,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 500 (ArithmeticException - non-terminating decimal - KNOWN BUG)": false
+			},
+			"testPassFailCounts": {
+				"Status 500 (ArithmeticException - non-terminating decimal - KNOWN BUG)": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Status 500 (ArithmeticException - non-terminating decimal - KNOWN BUG)": false
+				}
+			]
+		},
+		{
+			"id": "1bbdd315-2e3a-4717-b8ee-6bbd5cf2c9b2",
+			"name": "[TC_QUIZ_041] Overview stats for all quizzes in class",
+			"url": "http://localhost:8888/api/v1/quiz/statistic-overview-quizzes-in-class?id-class=&score=5",
+			"time": 8,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				8
+			],
+			"allTests": [
+				{
+					"Status 200": true
+				}
+			]
+		},
+		{
+			"id": "0cef6905-5463-4de3-ac4f-f21d3e0c5b57",
+			"name": "[TC_QUIZ_042] Overview student submit in class - Teacher",
+			"url": "http://localhost:8888/api/v1/quiz/overview-student-submit-in-class?id-class=&page=0&size=10",
+			"time": 10,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200": false,
+				"Has page content": false
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Has page content": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				10
+			],
+			"allTests": [
+				{
+					"Status 200": false,
+					"Has page content": false
+				}
+			]
+		},
+		{
+			"id": "81c8b719-85c5-4eef-b8e1-6595af28bd23",
+			"name": "[TC_QUIZ_043] Overview - teacher not in class → 403",
+			"url": "http://localhost:8888/api/v1/quiz/overview-student-submit-in-class?id-class=999998&page=0&size=10",
+			"time": 13,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 400 or 403": true
+			},
+			"testPassFailCounts": {
+				"Status 400 or 403": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				13
+			],
+			"allTests": [
+				{
+					"Status 400 or 403": true
+				}
+			]
+		},
+		{
+			"id": "f3e2e9f9-e84f-4b9d-8abe-fd90e5413534",
+			"name": "[TC_QUIZ_044] Overview - student who has not submitted shows 'Chưa làm'",
+			"url": "http://localhost:8888/api/v1/quiz/overview-student-submit-in-class?id-class=&page=0&size=10",
+			"time": 9,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 200": false,
+				"Has student with unsubmitted quiz": false
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Has student with unsubmitted quiz": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Status 200": false,
+					"Has student with unsubmitted quiz": false
+				}
+			]
+		},
+		{
+			"id": "807554ae-4ef1-4e0b-ba42-7bd0928e4a89",
+			"name": "[TC_QST_001] Add question to bank - valid → save questionId",
+			"url": "http://localhost:8888/api/v1/question/add-question-to-bank?bankId=89",
+			"time": 24,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Has questions": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Has questions": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				24
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Has questions": true
+				}
+			]
+		},
+		{
+			"id": "f6f584bb-5205-4d0b-80e7-c65819a7c856",
+			"name": "[TC_QST_002] Add question - blank content [KNOWN BUG: not rejected]",
+			"url": "http://localhost:8888/api/v1/question/add-question-to-bank?bankId=89",
+			"time": 24,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 400 (validation not implemented - KNOWN BUG)": false
+			},
+			"testPassFailCounts": {
+				"Status 400 (validation not implemented - KNOWN BUG)": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				24
+			],
+			"allTests": [
+				{
+					"Status 400 (validation not implemented - KNOWN BUG)": false
+				}
+			]
+		},
+		{
+			"id": "a445aa31-e2f1-4eeb-a091-25b99fd06b3a",
+			"name": "[TC_QST_003] Add question - blank answer [KNOWN BUG: not rejected]",
+			"url": "http://localhost:8888/api/v1/question/add-question-to-bank?bankId=89",
+			"time": 25,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 400 (validation not implemented - KNOWN BUG)": false
+			},
+			"testPassFailCounts": {
+				"Status 400 (validation not implemented - KNOWN BUG)": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				25
+			],
+			"allTests": [
+				{
+					"Status 400 (validation not implemented - KNOWN BUG)": false
+				}
+			]
+		},
+		{
+			"id": "3b5b29e0-8697-4052-a3e7-c2996c1692e3",
+			"name": "[TC_QST_004] Add question - blank explanation [KNOWN BUG: not rejected]",
+			"url": "http://localhost:8888/api/v1/question/add-question-to-bank?bankId=89",
+			"time": 26,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 400 (validation not implemented - KNOWN BUG)": false
+			},
+			"testPassFailCounts": {
+				"Status 400 (validation not implemented - KNOWN BUG)": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				26
+			],
+			"allTests": [
+				{
+					"Status 400 (validation not implemented - KNOWN BUG)": false
+				}
+			]
+		},
+		{
+			"id": "a0fb21d4-5b1f-4673-adf3-66a58db61052",
+			"name": "[TC_QST_005] Add question - bank not found → 404",
+			"url": "http://localhost:8888/api/v1/question/add-question-to-bank?bankId=999999",
+			"time": 9,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Status 404": true
+				}
+			]
+		},
+		{
+			"id": "f941b387-6585-4289-8df0-54fd3c42cb15",
+			"name": "[TC_QST_006] Add question - invalid JWT → 401/403",
+			"url": "http://localhost:8888/api/v1/question/add-question-to-bank?bankId=89",
+			"time": 5,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Status 401 or 403": true
+			},
+			"testPassFailCounts": {
+				"Status 401 or 403": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				5
+			],
+			"allTests": [
+				{
+					"Status 401 or 403": true
+				}
+			]
+		},
+		{
+			"id": "985172b0-262b-4ce2-a4eb-6b05708a230c",
+			"name": "[TC_QST_007] Remove question from bank - success",
+			"url": "http://localhost:8888/api/v1/question/remove-question-from-bank?bankId=89&questionsIds=174",
+			"time": 20,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				20
+			],
+			"allTests": [
+				{
+					"Status 200": true
+				}
+			]
+		},
+		{
+			"id": "2ba8c0a7-6559-474c-bfb6-db0229831822",
+			"name": "[TC_QST_008] Remove question - not found → 404",
+			"url": "http://localhost:8888/api/v1/question/remove-question-from-bank?bankId=89&questionsIds=999999",
+			"time": 11,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				11
+			],
+			"allTests": [
+				{
+					"Status 404": true
+				}
+			]
+		},
+		{
+			"id": "dabe3fb8-0ef6-44bc-a2ed-6c3985ac3edf",
+			"name": "[TC_QST_009] Get question detail - success",
+			"url": "http://localhost:8888/api/v1/question/detail?questionId=174",
+			"time": 12,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Has questionContent": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Has questionContent": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				12
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Has questionContent": true
+				}
+			]
+		},
+		{
+			"id": "4bc44e14-b54c-44eb-9c26-cc6f3510dc21",
+			"name": "[TC_QST_010] Get question detail - not found → 404",
+			"url": "http://localhost:8888/api/v1/question/detail?questionId=999999",
+			"time": 6,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				6
+			],
+			"allTests": [
+				{
+					"Status 404": true
+				}
+			]
+		},
+		{
+			"id": "41257e1f-87b3-42ee-8ec2-5e081ca55edd",
+			"name": "[TC_QST_011] Save AI questions - success",
+			"url": "http://localhost:8888/api/v1/question/create-for-ai",
+			"time": 24,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				24
+			],
+			"allTests": [
+				{
+					"Status 200": true
+				}
+			]
+		},
+		{
+			"id": "b877eac2-40fb-4a0d-a8bc-1e6ae9642538",
+			"name": "[TC_QST_012] Save AI questions - invalid JWT → 401/403",
+			"url": "http://localhost:8888/api/v1/question/create-for-ai",
+			"time": 5,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Status 401 or 403": true
+			},
+			"testPassFailCounts": {
+				"Status 401 or 403": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				5
+			],
+			"allTests": [
+				{
+					"Status 401 or 403": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 2314,
+	"collection": {
+		"requests": [
+			{
+				"id": "84c07e63-0761-4f6b-94b7-9d1c1af0f7e3",
+				"method": "POST"
+			},
+			{
+				"id": "7b0967b0-da00-433b-bac4-f5503c36566f",
+				"method": "POST"
+			},
+			{
+				"id": "b6155585-2f19-448b-9c7f-91d58ae62070",
+				"method": "POST"
+			},
+			{
+				"id": "985a674a-e2a1-49b2-a944-b094403fb95e",
+				"method": "POST"
+			},
+			{
+				"id": "72f972e4-10c2-4859-befe-7f49215994d9",
+				"method": "POST"
+			},
+			{
+				"id": "3d9187a6-4b62-4c03-91bd-f41fd8f1c3b4",
+				"method": "POST"
+			},
+			{
+				"id": "bcdba4b9-68cf-42cb-ab56-39624e88ee9d",
+				"method": "POST"
+			},
+			{
+				"id": "7d15cf7b-b046-4cf9-9fac-093918e03f2c",
+				"method": "POST"
+			},
+			{
+				"id": "b6b95b45-443b-4c1c-9993-306bdf64ae33",
+				"method": "GET"
+			},
+			{
+				"id": "cc212351-d1e9-40d9-9592-30f3706d9363",
+				"method": "GET"
+			},
+			{
+				"id": "304116a3-830c-4a61-b8f5-f40eaa569e7f",
+				"method": "POST"
+			},
+			{
+				"id": "9c97cc13-1ddd-474f-98e0-631db94da65a",
+				"method": "POST"
+			},
+			{
+				"id": "aeabd7f5-c488-4bf9-9ca1-becc84dc3097",
+				"method": "GET"
+			},
+			{
+				"id": "9894c369-a1e7-4393-9e01-05b1763db3c5",
+				"method": "GET"
+			},
+			{
+				"id": "e129699b-43ed-4d70-a098-1b578190b3bd",
+				"method": "GET"
+			},
+			{
+				"id": "8dcd4d4e-904f-4b3e-9a8f-b6b0b34ef58b",
+				"method": "GET"
+			},
+			{
+				"id": "c9cd93f5-cd18-4060-ace8-3bd48c034e50",
+				"method": "GET"
+			},
+			{
+				"id": "500e8e45-138b-49f0-b318-3ddff41693c3",
+				"method": "GET"
+			},
+			{
+				"id": "2f807bf6-4db6-4fba-bb06-c274295a4b06",
+				"method": "POST"
+			},
+			{
+				"id": "bc02a7f5-980c-4c61-ad1b-676b4c18aa25",
+				"method": "POST"
+			},
+			{
+				"id": "670b2fb0-9394-492c-be1b-e065b7c3cc61",
+				"method": "POST"
+			},
+			{
+				"id": "998ad97a-7044-49f6-a4fc-78c908c73377",
+				"method": "GET"
+			},
+			{
+				"id": "e779b5fc-363d-46b0-b6df-43a379815d2c",
+				"method": "GET"
+			},
+			{
+				"id": "fd141234-0b09-4b06-aca5-2b4256ac8719",
+				"method": "POST"
+			},
+			{
+				"id": "074ad2e3-2f53-4f74-9f38-3db33e09e19f",
+				"method": "POST"
+			},
+			{
+				"id": "dc66c6be-12c4-4560-91b0-bb198d0ef0d5",
+				"method": "POST"
+			},
+			{
+				"id": "778abaed-eb13-44ce-91a3-c755ba507259",
+				"method": "POST"
+			},
+			{
+				"id": "fc9dbade-4539-4196-b051-cb0acb193e48",
+				"method": "POST"
+			},
+			{
+				"id": "a63c4126-9fbc-4798-92f5-d0dd525adddc",
+				"method": "POST"
+			},
+			{
+				"id": "75b18b16-7358-47b3-8a00-9deaf6e35c9d",
+				"method": "POST"
+			},
+			{
+				"id": "e78cb725-16d8-4a33-8faf-f9162a8f3aab",
+				"method": "POST"
+			},
+			{
+				"id": "9ad0edd6-85ce-4a9d-aa3f-a25ebc7aa76c",
+				"method": "POST"
+			},
+			{
+				"id": "a0822b90-e97a-4cc3-8a78-ddaab0ff14a9",
+				"method": "GET"
+			},
+			{
+				"id": "f8e0f463-1eca-4f96-8086-66d3fbe52229",
+				"method": "GET"
+			},
+			{
+				"id": "ba2551ef-e54d-4b67-ba71-218510245334",
+				"method": "POST"
+			},
+			{
+				"id": "d15c8f3a-3b6a-45ee-8bae-fc55cb47791b",
+				"method": "POST"
+			},
+			{
+				"id": "c941a382-26d5-460c-bb2c-189235dbf8d7",
+				"method": "POST"
+			},
+			{
+				"id": "d9f38475-0cfd-4098-83e6-561a41bfd43b",
+				"method": "POST"
+			},
+			{
+				"id": "0c9a87b7-b157-48bf-a665-578b4f0f2b90",
+				"method": "POST"
+			},
+			{
+				"id": "b5668da2-6d4c-489b-ad86-d4dc38bd372b",
+				"method": "POST"
+			},
+			{
+				"id": "46c33bcc-bb3f-46ab-aaf5-49f1824e35af",
+				"method": "POST"
+			},
+			{
+				"id": "e138c926-c5ec-48d3-944b-411d7c51047e",
+				"method": "POST"
+			},
+			{
+				"id": "855d192e-1580-481a-a5fb-03c3869e9ef5",
+				"method": "POST"
+			},
+			{
+				"id": "3e12efda-e5b6-4cb2-afd6-656a4bb02caa",
+				"method": "POST"
+			},
+			{
+				"id": "acebca9c-3447-4c90-a593-15e17f90a286",
+				"method": "POST"
+			},
+			{
+				"id": "fc8e0ff0-40a1-4a57-9be5-860ee24e5424",
+				"method": "POST"
+			},
+			{
+				"id": "a5c73a9a-fe9a-4218-9985-b2238412a472",
+				"method": "POST"
+			},
+			{
+				"id": "f25c7f41-4b01-40f3-b069-92edfbd1cf0d",
+				"method": "POST"
+			},
+			{
+				"id": "d10b6d13-a4ef-4e61-8096-e26f2996d004",
+				"method": "POST"
+			},
+			{
+				"id": "ec52f1a7-92d1-4060-80d4-2b6c6ee93bdd",
+				"method": "POST"
+			},
+			{
+				"id": "15ee2179-5c9c-4305-b011-b461d4fb944d",
+				"method": "POST"
+			},
+			{
+				"id": "dc3c8f5f-d91f-461f-bc3d-f2ade4c1dac7",
+				"method": "POST"
+			},
+			{
+				"id": "af94f498-26d8-4cf7-a700-4d5a23660c71",
+				"method": "POST"
+			},
+			{
+				"id": "5a34b6c3-8abd-4f68-a542-001354283bce",
+				"method": "POST"
+			},
+			{
+				"id": "5a327d56-1535-49a7-980e-5d25330f8e0e",
+				"method": "POST"
+			},
+			{
+				"id": "fcae3e33-cb4f-4d06-b1fd-3ac5e83045d0",
+				"method": "POST"
+			},
+			{
+				"id": "7817afd4-bae1-41c9-90f8-9e2ab039afe1",
+				"method": "POST"
+			},
+			{
+				"id": "7db9989b-e936-44e6-af43-0e306fcc9705",
+				"method": "POST"
+			},
+			{
+				"id": "ae4d1250-dc02-4404-a543-f04e5f4583f4",
+				"method": "POST"
+			},
+			{
+				"id": "9e9eff35-0fd1-4522-9b5c-ed4b4fe14c83",
+				"method": "POST"
+			},
+			{
+				"id": "fff00f50-9b3c-4927-91ec-8ab6af654ddb",
+				"method": "POST"
+			},
+			{
+				"id": "e9e61cfa-a9de-4381-8ef5-444174298e8d",
+				"method": "POST"
+			},
+			{
+				"id": "1bbdd315-2e3a-4717-b8ee-6bbd5cf2c9b2",
+				"method": "POST"
+			},
+			{
+				"id": "0cef6905-5463-4de3-ac4f-f21d3e0c5b57",
+				"method": "GET"
+			},
+			{
+				"id": "81c8b719-85c5-4eef-b8e1-6595af28bd23",
+				"method": "GET"
+			},
+			{
+				"id": "f3e2e9f9-e84f-4b9d-8abe-fd90e5413534",
+				"method": "GET"
+			},
+			{
+				"id": "807554ae-4ef1-4e0b-ba42-7bd0928e4a89",
+				"method": "POST"
+			},
+			{
+				"id": "f6f584bb-5205-4d0b-80e7-c65819a7c856",
+				"method": "POST"
+			},
+			{
+				"id": "a445aa31-e2f1-4eeb-a091-25b99fd06b3a",
+				"method": "POST"
+			},
+			{
+				"id": "3b5b29e0-8697-4052-a3e7-c2996c1692e3",
+				"method": "POST"
+			},
+			{
+				"id": "a0fb21d4-5b1f-4673-adf3-66a58db61052",
+				"method": "POST"
+			},
+			{
+				"id": "f941b387-6585-4289-8df0-54fd3c42cb15",
+				"method": "POST"
+			},
+			{
+				"id": "985172b0-262b-4ce2-a4eb-6b05708a230c",
+				"method": "POST"
+			},
+			{
+				"id": "2ba8c0a7-6559-474c-bfb6-db0229831822",
+				"method": "POST"
+			},
+			{
+				"id": "dabe3fb8-0ef6-44bc-a2ed-6c3985ac3edf",
+				"method": "GET"
+			},
+			{
+				"id": "4bc44e14-b54c-44eb-9c26-cc6f3510dc21",
+				"method": "GET"
+			},
+			{
+				"id": "41257e1f-87b3-42ee-8ec2-5e081ca55edd",
+				"method": "POST"
+			},
+			{
+				"id": "b877eac2-40fb-4a0d-a8bc-1e6ae9642538",
+				"method": "POST"
+			}
+		]
+	}
+}

@@ -47,9 +47,9 @@ class JwtUtilTest {
         ReflectionTestUtils.setField(jwtUtil, "SIGNER_KEY", RAW_SIGNER_KEY);
     }
 
-    // TC_AUTH_101
+    // TC_AUTH_021
     @Test
-    @DisplayName("TC_AUTH_101: getJwtFromRequest extracts the bearer token")
+    @DisplayName("TC_AUTH_021: getJwtFromRequest extracts the bearer token")
     void getJwtFromRequestExtractsTheBearerToken() {
         when(request.getHeader("Authorization")).thenReturn("Bearer valid.jwt.token");
 
@@ -58,9 +58,9 @@ class JwtUtilTest {
         assertEquals("valid.jwt.token", token);
     }
 
-    // TC_AUTH_102
+    // TC_AUTH_022
     @Test
-    @DisplayName("TC_AUTH_102: getJwtFromRequest throws when Authorization header is missing")
+    @DisplayName("TC_AUTH_022: getJwtFromRequest throws when Authorization header is missing")
     void getJwtFromRequestThrowsWhenAuthorizationHeaderIsMissing() {
         when(request.getHeader("Authorization")).thenReturn(null);
 
@@ -73,9 +73,9 @@ class JwtUtilTest {
         assertEquals(ResponseObject.TOKEN, exception.getResponseObject());
     }
 
-    // TC_AUTH_103
+    // TC_AUTH_023
     @Test
-    @DisplayName("TC_AUTH_103: getEmailFromToken returns the JWT subject")
+    @DisplayName("TC_AUTH_023: getEmailFromToken returns the JWT subject")
     void getEmailFromTokenReturnsTheJwtSubject() {
         String token = buildToken(TEST_EMAIL, RAW_SIGNER_KEY);
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
@@ -85,9 +85,9 @@ class JwtUtilTest {
         assertEquals(TEST_EMAIL, email);
     }
 
-    // TC_AUTH_104
+    // TC_AUTH_024
     @Test
-    @DisplayName("TC_AUTH_104: getEmailFromToken throws IllegalArgumentException for invalid JWT")
+    @DisplayName("TC_AUTH_024: getEmailFromToken throws IllegalArgumentException for invalid JWT")
     void getEmailFromTokenThrowsIllegalArgumentExceptionForInvalidJwt() {
         when(request.getHeader("Authorization")).thenReturn("Bearer invalid.jwt.token");
 
@@ -99,9 +99,9 @@ class JwtUtilTest {
         assertTrue(exception.getMessage().contains("Invalid JWT token"));
     }
 
-    // TC_AUTH_105
+    // TC_AUTH_025
     @Test
-    @DisplayName("TC_AUTH_105: getEmailFromTokenString returns the JWT subject")
+    @DisplayName("TC_AUTH_025: getEmailFromTokenString returns the JWT subject")
     void getEmailFromTokenStringReturnsTheJwtSubject() {
         String token = buildToken(TEST_EMAIL, RAW_SIGNER_KEY);
 
@@ -112,7 +112,7 @@ class JwtUtilTest {
 
     // TC_AUTH_106
     @Test
-    @DisplayName("TC_AUTH_106: getSigningKey decodes the base64 configured signer key")
+    @DisplayName("TC_AUTH_026: getSigningKey decodes the base64 configured signer key")
     void getSigningKeyDecodesTheBase64ConfiguredSignerKey() {
         String base64SignerKey = Base64.getEncoder().encodeToString(RAW_SIGNER_KEY.getBytes());
         ReflectionTestUtils.setField(jwtUtil, "SIGNER_KEY", base64SignerKey);
@@ -123,9 +123,9 @@ class JwtUtilTest {
         assertEquals("HmacSHA512", signingKey.getAlgorithm());
     }
 
-    // TC_AUTH_107
+    // TC_AUTH_027
     @Test
-    @DisplayName("TC_AUTH_107: getSigningKey throws when signer key is not configured")
+    @DisplayName("TC_AUTH_027: getSigningKey throws when signer key is not configured")
     void getSigningKeyThrowsWhenSignerKeyIsNotConfigured() {
         ReflectionTestUtils.setField(jwtUtil, "SIGNER_KEY", null);
 
