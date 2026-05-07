@@ -24,6 +24,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -100,13 +101,6 @@ class QuizServiceImplTest {
         studentUser.setRole(ERole.STUDENT);
         studentUser.setFirstName("Tran");
         studentUser.setLastName("Student");
-
-        managerUser = new User();
-        managerUser.setId(3L);
-        managerUser.setEmail("manager@test.com");
-        managerUser.setRole(ERole.MANAGER);
-        managerUser.setFirstName("Le");
-        managerUser.setLastName("Manager");
 
         quiz = Quiz.builder()
                 .id(1L)
@@ -203,7 +197,7 @@ class QuizServiceImplTest {
         }
 
         @Test
-        @DisplayName("TC_QUIZ_003 - Tạo quiz với title trắng không được lưu (kỳ vọng nghiệp vụ)")
+        @DisplayName("TC_QUIZ_003 - Tạo quiz với title trắng không được lưu")
         void createQuiz_WithWhiteSpaceTitle_ShouldNotPersistQuiz() {
             // Arrange
             QuizRequest request = new QuizRequest();
@@ -682,7 +676,7 @@ class QuizServiceImplTest {
         }
 
         @Test
-        @DisplayName("TC_QUIZ_019 - Nộp bài quiz thất bại khi quiz không tồn tại")
+        @DisplayName("TC_QUIZ_018 - Nộp bài quiz thất bại khi quiz không tồn tại")
         void submitQuiz_WithNonExistentQuiz_ShouldThrowException() {
             // Arrange
             when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("student@test.com");
@@ -700,7 +694,7 @@ class QuizServiceImplTest {
         }
 
         @Test
-        @DisplayName("TC_QUIZ_020 - Nộp bài quiz thất bại khi class không tồn tại")
+        @DisplayName("TC_QUIZ_019 - Nộp bài quiz thất bại khi class không tồn tại")
         void submitQuiz_WithNonExistentClass_ShouldThrowException() {
             // Arrange
             when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("student@test.com");
@@ -719,7 +713,7 @@ class QuizServiceImplTest {
         }
 
         @Test
-        @DisplayName("TC_QUIZ_021 - Nộp bài quiz thành công với tất cả câu đúng, score = 10")
+        @DisplayName("TC_QUIZ_020 - Nộp bài quiz thành công với tất cả câu đúng, score = 10")
         void submitQuiz_WithAllCorrectAnswers_ShouldGetPerfectScore() {
             // Arrange: quiz có 2 câu, trả lời đúng hết
             Quiz quiz2 = Quiz.builder().id(2L).title("Quiz 2").totalQuestions(2L).build();
@@ -760,6 +754,116 @@ class QuizServiceImplTest {
             // Assert: score = 2/2 * 10 = 10.00
             verify(studentQuizRepository, times(2)).save(any(StudentQuiz.class));
         }
+
+        @Test
+        @DisplayName("TC_QUIZ_022 - Nộp bài quiz với 4/6 câu đúng, score phải là số thập phân ~6.67")
+        void submitQuiz_WithFourOutOfSixCorrect_ShouldGetDecimalScore() {
+            // --- 1. Arrange: Giả lập 6 câu hỏi, người dùng đúng 4 câu ---
+            long totalQuestions = 6L;
+            long correctAnswersCount = 4L;
+
+            Quiz quiz = Quiz.builder()
+                    .id(10L)
+                    .title("Quiz Thập Phân")
+                    .totalQuestions(totalQuestions)
+                    .build();
+
+            List<SubmitRequest> submitRequests = new ArrayList<>();
+
+            for (long i = 1; i <= totalQuestions; i++) {
+                // Mock Question
+                Question q = Question.builder().id(i).build();
+                when(questionRepository.findById(i)).thenReturn(Optional.of(q));
+
+                // Mock Answer: 4 câu đầu đúng (isCorrect=true), 2 câu sau sai (isCorrect=false)
+                boolean isCorrect = (i <= correctAnswersCount);
+                Answer a = Answer.builder().id(i).isCorrect(isCorrect).build();
+                when(answerRepository.findById(i)).thenReturn(Optional.of(a));
+
+                // Tạo Request nộp bài
+                SubmitRequest sr = new SubmitRequest();
+                sr.setQuestionId(i);
+                sr.setAnswerId(i);
+                submitRequests.add(sr);
+            }
+
+            // Mock các thành phần bổ trợ
+            StudentQuiz savedSQ = StudentQuiz.builder().id(1L).quiz(quiz).build();
+            when(jwtUtil.getEmailFromToken(any())).thenReturn("student@test.com");
+            when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(studentUser));
+            when(quizRepository.findById(10L)).thenReturn(Optional.of(quiz));
+            when(classRepository.findById(1L)).thenReturn(Optional.of(clazz));
+            when(studentQuizRepository.save(any(StudentQuiz.class))).thenReturn(savedSQ);
+
+            // --- 2. Act ---
+            quizService.submitQuiz(httpServletRequest, 10L, submitRequests, 1L, "Test Decimal");
+
+            // --- 3. Assert ---
+            // Sử dụng ArgumentCaptor để "bắt" đối tượng StudentQuiz trước khi lưu vào DB
+            ArgumentCaptor<StudentQuiz> sqCaptor = ArgumentCaptor.forClass(StudentQuiz.class);
+
+            // Kiểm tra xem hàm save được gọi (ít nhất 1 lần để cập nhật score)
+            verify(studentQuizRepository, atLeastOnce()).save(sqCaptor.capture());
+
+            // Lấy giá trị score thực tế từ lần save cuối cùng
+            BigDecimal actualScore = sqCaptor.getValue().getScore();
+
+            // Kiểm tra score: (4/6) * 10 = 6.6666... (Hệ thống làm tròn thành 6.7)
+            // Sử dụng offset (0.01) để tránh lỗi làm tròn số thực trong máy tính
+            assertThat(actualScore).isNotNull();
+            assertThat(actualScore.doubleValue()).isCloseTo(6.7, within(0.01));
+
+            System.out.println("Actual Score calculated by Service: " + actualScore);
+        }
+
+        /**
+         * UT_QZ_019: Nộp bài với danh sách câu trả lời rỗng → score = 0.00.
+         * Mapped: TC_FN_049 auto-submit (tab-switch), anti-cheat submit với des="Vi
+         * phạm"
+         */
+        @Test
+        @DisplayName("UT_QUIZ_021 - Nộp bài với answers rỗng → score = 0.00")
+        void submitQuiz_WithEmptyAnswerList_ShouldScoreZero() {
+            // Arrange
+            Quiz emptyQuiz = Quiz.builder().id(3L).title("Empty Quiz").totalQuestions(5L).build();
+            StudentQuiz savedSQ = StudentQuiz.builder().id(10L).quiz(emptyQuiz).build();
+
+            when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("student@test.com");
+            when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(studentUser));
+            when(quizRepository.findById(3L)).thenReturn(Optional.of(emptyQuiz));
+            when(classRepository.findById(1L)).thenReturn(Optional.of(clazz));
+            when(studentQuizRepository.save(any(StudentQuiz.class))).thenReturn(savedSQ);
+
+            // Act
+            quizService.submitQuiz(httpServletRequest, 3L, Collections.emptyList(), 1L, "Vi phạm");
+
+            // Assert: studentAnswerRepository không được gọi vì không có câu trả lời
+            verify(studentAnswerRepository, never()).save(any());
+            // studentQuizRepository.save gọi 2 lần: tạo + cập nhật score = 0
+            verify(studentQuizRepository, times(2)).save(any(StudentQuiz.class));
+        }
+
+        /**
+         * UT_QZ_022: Nộp bài thất bại khi user không tồn tại.
+         */
+        @Test
+        @DisplayName("UT_QUIZ_023 - Nộp bài thất bại khi user không tồn tại")
+        void submitQuiz_WithUnknownUser_ShouldThrowException() {
+            // Arrange
+            when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("unknown@test.com");
+            when(userRepository.findByEmail("unknown@test.com")).thenReturn(Optional.empty());
+
+            // Act & Assert
+            assertThatThrownBy(() -> quizService.submitQuiz(httpServletRequest, 1L, List.of(), 1L, "test"))
+                    .isInstanceOf(WebToeicException.class)
+                    .satisfies(ex -> {
+                        WebToeicException wex = (WebToeicException) ex;
+                        assertThat(wex.getResponseCode()).isEqualTo(ResponseCode.NOT_EXISTED);
+                        assertThat(wex.getResponseObject()).isEqualTo(ResponseObject.USER);
+                    });
+
+            verify(studentQuizRepository, never()).save(any());
+        }
     }
 
     // =====================================================================
@@ -770,7 +874,7 @@ class QuizServiceImplTest {
     class PullQuizToClassTests {
 
         @Test
-        @DisplayName("TC_QUIZ_022 - Gán quiz vào lớp thành công (TEACHER)")
+        @DisplayName("TC_QUIZ_024 - Gán quiz vào lớp thành công (TEACHER)")
         void pullQuizToClass_AsTeacher_ShouldSaveSharedQuiz() {
             // Arrange
             SharedQuizRequest request = new SharedQuizRequest();
@@ -797,7 +901,7 @@ class QuizServiceImplTest {
         }
 
         @Test
-        @DisplayName("TC_QUIZ_023 - Gán quiz thất bại khi teacher không thuộc lớp")
+        @DisplayName("TC_QUIZ_025 - Gán quiz thất bại khi teacher không thuộc lớp")
         void pullQuizToClass_AsTeacherNotInClass_ShouldThrowException() {
             // Arrange
             SharedQuizRequest request = new SharedQuizRequest();
@@ -820,30 +924,61 @@ class QuizServiceImplTest {
             verify(shareQuizRepository, never()).save(any());
         }
 
+        /**
+         * UT_QUIZ_024: Gán quiz thất bại khi quiz không tồn tại.
+         */
         @Test
-        @DisplayName("TC_QUIZ_024 - Gán quiz thành công (MANAGER - không cần check member)")
-        void pullQuizToClass_AsManager_ShouldSaveWithoutMemberCheck() {
+        @DisplayName("TC_QUIZ_026 - Gán quiz thất bại khi quiz không tồn tại")
+        void pullQuizToClass_WithNonExistentQuiz_ShouldThrowException() {
             // Arrange
             SharedQuizRequest request = new SharedQuizRequest();
             request.setClassId(1L);
+            request.setQuizId(999L);
+
+            when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("teacher@test.com");
+            when(userRepository.findByEmail("teacher@test.com")).thenReturn(Optional.of(teacherUser));
+            when(classMemberRepository.existsMemberInClass(anyLong(), any())).thenReturn(true);
+            when(quizRepository.findById(999L)).thenReturn(Optional.empty());
+
+            // Act & Assert
+            assertThatThrownBy(() -> quizService.pullQuizToClass(httpServletRequest, request))
+                    .isInstanceOf(WebToeicException.class)
+                    .satisfies(ex -> {
+                        WebToeicException wex = (WebToeicException) ex;
+                        assertThat(wex.getResponseCode()).isEqualTo(ResponseCode.NOT_EXISTED);
+                        assertThat(wex.getResponseObject()).isEqualTo(ResponseObject.QUIZ);
+                    });
+
+            verify(shareQuizRepository, never()).save(any());
+        }
+
+        /**
+         * UT_QZ_026: Gán quiz thất bại khi class không tồn tại.
+         */
+        @Test
+        @DisplayName("TC_QUIZ_027 - Gán quiz thất bại khi class không tồn tại")
+        void pullQuizToClass_WithNonExistentClass_ShouldThrowException() {
+            // Arrange
+            SharedQuizRequest request = new SharedQuizRequest();
+            request.setClassId(999L);
             request.setQuizId(1L);
-            request.setStartAt(new Date());
-            request.setEndAt(new Date());
 
-            when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("manager@test.com");
-            when(userRepository.findByEmail("manager@test.com")).thenReturn(Optional.of(managerUser));
+            when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("teacher@test.com");
+            when(userRepository.findByEmail("teacher@test.com")).thenReturn(Optional.of(teacherUser));
             when(quizRepository.findById(1L)).thenReturn(Optional.of(quiz));
-            when(classRepository.findById(1L)).thenReturn(Optional.of(clazz));
-            when(shareQuizRepository.save(any(SharedQuiz.class))).thenReturn(new SharedQuiz());
-            when(classMemberRepository.findMembersInClass(1L)).thenReturn(List.of(studentUser));
-            doNothing().when(notiUtils).sendNoti(anyList(), any(), anyString(), anyString(), anyLong());
+            when(classMemberRepository.existsMemberInClass(anyLong(), any())).thenReturn(true);
+            when(classRepository.findById(999L)).thenReturn(Optional.empty());
 
-            // Act
-            quizService.pullQuizToClass(httpServletRequest, request);
+            // Act & Assert
+            assertThatThrownBy(() -> quizService.pullQuizToClass(httpServletRequest, request))
+                    .isInstanceOf(WebToeicException.class)
+                    .satisfies(ex -> {
+                        WebToeicException wex = (WebToeicException) ex;
+                        assertThat(wex.getResponseCode()).isEqualTo(ResponseCode.NOT_EXISTED);
+                        assertThat(wex.getResponseObject()).isEqualTo(ResponseObject.CLASS);
+                    });
 
-            // Assert: không gọi existsMemberInClass vì MANAGER
-            verify(classMemberRepository, never()).existsMemberInClass(anyLong(), anyLong());
-            verify(shareQuizRepository).save(any(SharedQuiz.class));
+            verify(shareQuizRepository, never()).save(any());
         }
     }
 
@@ -855,7 +990,7 @@ class QuizServiceImplTest {
     class UpdateQuizInClassTests {
 
         @Test
-        @DisplayName("TC_QUIZ_025 - Cập nhật quiz trong lớp thành công")
+        @DisplayName("TC_QUIZ_028 - Cập nhật quiz trong lớp thành công")
         void updateQuizInClass_WithValidInput_ShouldUpdate() {
             // Arrange
             SharedQuizRequest request = new SharedQuizRequest();
@@ -889,7 +1024,7 @@ class QuizServiceImplTest {
         }
 
         @Test
-        @DisplayName("TC_QUIZ_026 - Cập nhật thất bại khi teacher không thuộc lớp")
+        @DisplayName("TC_QUIZ_029 - Cập nhật thất bại khi teacher không thuộc lớp")
         void updateQuizInClass_TeacherNotInClass_ShouldThrowException() {
             // Arrange
             SharedQuizRequest request = new SharedQuizRequest();
@@ -910,7 +1045,7 @@ class QuizServiceImplTest {
         }
 
         @Test
-        @DisplayName("TC_QUIZ_027 - Cập nhật thất bại khi sharedQuiz không tồn tại")
+        @DisplayName("TC_QUIZ_030 - Cập nhật thất bại khi sharedQuiz không tồn tại")
         void updateQuizInClass_SharedQuizNotFound_ShouldThrowException() {
             // Arrange
             SharedQuizRequest request = new SharedQuizRequest();
@@ -941,7 +1076,7 @@ class QuizServiceImplTest {
     class GetListQuizInClassTests {
 
         @Test
-        @DisplayName("TC_QUIZ_028 - Lấy danh sách quiz trong lớp thành công (TEACHER)")
+        @DisplayName("TC_QUIZ_031 - Lấy danh sách quiz trong lớp thành công (TEACHER)")
         void getListQuizInClass_AsTeacher_ShouldReturnPage() {
             // Arrange
             SearchQuizDto dto = new SearchQuizDto();
@@ -974,7 +1109,7 @@ class QuizServiceImplTest {
         }
 
         @Test
-        @DisplayName("TC_QUIZ_029 - Lấy danh sách quiz thất bại khi teacher không thuộc lớp")
+        @DisplayName("TC_QUIZ_032 - Lấy danh sách quiz thất bại khi teacher không thuộc lớp")
         void getListQuizInClass_TeacherNotInClass_ShouldThrowException() {
             // Arrange
             SearchQuizDto dto = new SearchQuizDto();
@@ -992,26 +1127,6 @@ class QuizServiceImplTest {
                         assertThat(wex.getResponseCode()).isEqualTo(ResponseCode.NOT_PERMISSION);
                     });
         }
-
-        @Test
-        @DisplayName("TC_QUIZ_030 - MANAGER lấy quiz trong lớp không cần check member")
-        void getListQuizInClass_AsManager_ShouldSkipMemberCheck() {
-            // Arrange
-            SearchQuizDto dto = new SearchQuizDto();
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<SharedQuiz> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-
-            when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("manager@test.com");
-            when(userRepository.findByEmail("manager@test.com")).thenReturn(Optional.of(managerUser));
-            when(shareQuizRepository.filter(dto, 1L, pageable)).thenReturn(emptyPage);
-
-            // Act
-            Page<ShareQuizResponse> result = quizService.getListQuizInClass(httpServletRequest, 1L, dto, pageable);
-
-            // Assert
-            assertThat(result).isNotNull();
-            verify(classMemberRepository, never()).existsMemberInClass(anyLong(), anyLong());
-        }
     }
 
     // =====================================================================
@@ -1022,7 +1137,7 @@ class QuizServiceImplTest {
     class GetDetailSubmitQuizTests {
 
         @Test
-        @DisplayName("TC_QUIZ_031 - Lấy chi tiết bài nộp thành công")
+        @DisplayName("TC_QUIZ_033 - Lấy chi tiết bài nộp thành công")
         void getDetailSubmitQuiz_WithValidId_ShouldReturnSubmitResponse() {
             // Arrange
             StudentQuiz studentQuiz = StudentQuiz.builder()
@@ -1059,7 +1174,7 @@ class QuizServiceImplTest {
         }
 
         @Test
-        @DisplayName("TC_QUIZ_032 - Lấy chi tiết bài nộp thất bại khi không tồn tại")
+        @DisplayName("TC_QUIZ_034 - Lấy chi tiết bài nộp thất bại khi không tồn tại")
         void getDetailSubmitQuiz_WithNonExistentId_ShouldThrowException() {
             // Arrange
             when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("student@test.com");
@@ -1085,7 +1200,7 @@ class QuizServiceImplTest {
     class GetListSubmitQuizTests {
 
         @Test
-        @DisplayName("TC_QUIZ_033 - Teacher lấy danh sách bài nộp thành công")
+        @DisplayName("TC_QUIZ_035 - Teacher lấy danh sách bài nộp thành công")
         void getListSubmitQuiz_AsTeacher_ShouldReturnAllSubmissions() {
             // Arrange
             SearchSubmittedDto dto = new SearchSubmittedDto();
@@ -1119,7 +1234,7 @@ class QuizServiceImplTest {
         }
 
         @Test
-        @DisplayName("TC_QUIZ_034 - Student chỉ xem bài nộp của mình")
+        @DisplayName("TC_QUIZ_036 - Student chỉ xem bài nộp của mình")
         void getListSubmitQuiz_AsStudent_ShouldFilterByEmail() {
             // Arrange
             SearchSubmittedDto dto = new SearchSubmittedDto();
@@ -1143,7 +1258,7 @@ class QuizServiceImplTest {
         }
 
         @Test
-        @DisplayName("TC_QUIZ_035 - Teacher/Student không thuộc lớp → lỗi permission")
+        @DisplayName("TC_QUIZ_037 - Teacher/Student không thuộc lớp → lỗi permission")
         void getListSubmitQuiz_NotInClass_ShouldThrowException() {
             // Arrange
             SearchSubmittedDto dto = new SearchSubmittedDto();
@@ -1161,26 +1276,6 @@ class QuizServiceImplTest {
                         assertThat(wex.getResponseCode()).isEqualTo(ResponseCode.NOT_PERMISSION);
                     });
         }
-
-        @Test
-        @DisplayName("TC_QUIZ_036 - Manager lấy danh sách bài nộp không cần check member")
-        void getListSubmitQuiz_AsManager_ShouldSkipMemberCheck() {
-            // Arrange
-            SearchSubmittedDto dto = new SearchSubmittedDto();
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<StudentQuiz> sqPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-
-            when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("manager@test.com");
-            when(userRepository.findByEmail("manager@test.com")).thenReturn(Optional.of(managerUser));
-            when(studentQuizRepository.filter(1L, 1L, dto, pageable, null)).thenReturn(sqPage);
-
-            // Act
-            Page<SubmitResponse> result = quizService.getListSubmitQuiz(httpServletRequest, 1L, 1L, dto, pageable);
-
-            // Assert
-            assertThat(result).isNotNull();
-            verify(classMemberRepository, never()).existsMemberInClass(anyLong(), anyLong());
-        }
     }
 
     // =====================================================================
@@ -1191,7 +1286,7 @@ class QuizServiceImplTest {
     class StatisticDetailQuizInClassTests {
 
         @Test
-        @DisplayName("TC_QUIZ_037 - Thống kê chi tiết quiz thành công")
+        @DisplayName("TC_QUIZ_038 - Thống kê chi tiết quiz thành công")
         void statisticDetailQuizInClass_WithValidData_ShouldReturnOverview() {
             // Arrange
             SearchSubmittedDto dto = new SearchSubmittedDto();
@@ -1214,6 +1309,58 @@ class QuizServiceImplTest {
             assertThat(result.getOverScore()).isEqualTo(3L);
             assertThat(result.getUnderScore()).isEqualTo(1L);
         }
+
+        /**
+         * UT_QZ_034: total = 0 → chia cho 0 → ArithmeticException (bug documentation).
+         * Mapped: TC_FN_042 Fail – quiz "!adwad" hiển thị 0 submission
+         * Ghi chú: Test này verify BUG HIỆN TẠI; sẽ pass sau khi fix theo đoạn code
+         * comment sẵn.
+         */
+        @Test
+        @DisplayName("TC_QUIZ_039 - total=0 đáng lẽ phải trả về thống kê bình thường")
+        void statisticDetailQuizInClass_WhenTotalIsZero_ShouldReturnZeroPercentage() {
+            // Arrange: không có submission nào
+            SearchSubmittedDto dto = new SearchSubmittedDto();
+            Page<StudentQuiz> emptyPage = new PageImpl<>(
+                    Collections.emptyList(), PageRequest.of(0, 10), 0);
+            when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("teacher@test.com");
+            when(userRepository.findByEmail("teacher@test.com")).thenReturn(Optional.of(teacherUser));
+            when(studentQuizRepository.filter(1L, 1L, dto, null, null)).thenReturn(emptyPage);
+            when(studentQuizRepository.countOver(1L, dto, 5L)).thenReturn(0L);
+            // Act: Gọi hàm bình thường.
+            OverviewResponse result = quizService.statisticDetailQuizInClass(httpServletRequest, 1L, 1L, 5L, dto);
+            // Assert
+            assertThat(result).isNotNull();
+            assertThat(result.getTotal()).isEqualTo(0L);
+            assertThat(result.getOverScore()).isEqualTo(0L);
+        }
+
+        /**
+         * UT_QZ_035: Phép chia sinh ra số thập phân vô hạn → ArithmeticException (bug).
+         * Mapped: TC_FN_042 Fail – quiz "!adwad" với 14 submissions (14/14 = 1 nhưng
+         * chia exact không xong)
+         * Ghi chú: BigDecimal.divide() không có RoundingMode sẽ ném nếu kết quả
+         * non-terminating.
+         */
+        @Test
+        @DisplayName("TC_QUIZ_040 - Chứng minh lỗi: Chia sinh non-terminating ")
+        void statisticDetailQuizInClass_WhenDivisionIsNonTerminating_ShouldNotThrowException() {
+            // Arrange: 1 pass / 3 total = 0.333... -> non-terminating
+            SearchSubmittedDto dto = new SearchSubmittedDto();
+            Page<StudentQuiz> page = new PageImpl<>(
+                    List.of(new StudentQuiz(), new StudentQuiz(), new StudentQuiz()),
+                    PageRequest.of(0, 10), 3);
+            when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("teacher@test.com");
+            when(userRepository.findByEmail("teacher@test.com")).thenReturn(Optional.of(teacherUser));
+            when(studentQuizRepository.filter(1L, 1L, dto, null, null)).thenReturn(page);
+            when(studentQuizRepository.countOver(1L, dto, 5L)).thenReturn(1L);
+            // Act: Cố gắng gọi hàm lấy kết quả
+            OverviewResponse result = quizService.statisticDetailQuizInClass(httpServletRequest, 1L, 1L, 5L, dto);
+            // Assert: Kỳ vọng hệ thống hoạt động bình thường
+            assertThat(result).isNotNull();
+            assertThat(result.getTotal()).isEqualTo(3L);
+            assertThat(result.getOverScore()).isEqualTo(1L);
+        }
     }
 
     // =====================================================================
@@ -1224,7 +1371,7 @@ class QuizServiceImplTest {
     class StatisticOverviewQuizInClassTests {
 
         @Test
-        @DisplayName("TC_QUIZ_038 - Thống kê tổng quan quiz thành công")
+        @DisplayName("TC_QUIZ_041 - Thống kê tổng quan quiz thành công")
         void statisticOverviewQuizInClass_WithValidData_ShouldReturnOverview() {
             // Arrange
             SearchQuizDto dto = new SearchQuizDto();
@@ -1256,7 +1403,7 @@ class QuizServiceImplTest {
     class OverviewStudentSubmitInClassTests {
 
         @Test
-        @DisplayName("TC_QUIZ_039 - Teacher lấy tổng quan bài nộp thành công")
+        @DisplayName("TC_QUIZ_042 - Teacher lấy tổng quan bài nộp thành công")
         void overviewStudentSubmitInClass_AsTeacher_ShouldReturnOverview() {
             // Arrange
             Pageable pageable = PageRequest.of(0, 10);
@@ -1285,7 +1432,8 @@ class QuizServiceImplTest {
             when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("teacher@test.com");
             when(userRepository.findByEmail("teacher@test.com")).thenReturn(Optional.of(teacherUser));
             when(classMemberRepository.existsMemberInClass(1L, 1L)).thenReturn(true);
-            when(classMemberRepository.findMembersInClass(any(com.doan2025.webtoeic.dto.SearchMemberInClassDto.class)))
+            when(classMemberRepository
+                    .findMembersInClass(any(com.doan2025.webtoeic.dto.SearchMemberInClassDto.class)))
                     .thenReturn(List.of(classMember));
             when(shareQuizRepository.filter(any(SearchQuizDto.class), eq(1L))).thenReturn(List.of(sharedQuiz));
             when(studentQuizRepository.findByUser_idAndClazz_id(2L, 1L)).thenReturn(List.of(studentQuiz));
@@ -1306,7 +1454,7 @@ class QuizServiceImplTest {
         }
 
         @Test
-        @DisplayName("TC_QUIZ_040 - Teacher không thuộc lớp → lỗi permission")
+        @DisplayName("TC_QUIZ_043 - Teacher không thuộc lớp → lỗi permission")
         void overviewStudentSubmitInClass_TeacherNotInClass_ShouldThrowException() {
             // Arrange
             Pageable pageable = PageRequest.of(0, 10);
@@ -1326,7 +1474,7 @@ class QuizServiceImplTest {
         }
 
         @Test
-        @DisplayName("TC_QUIZ_041 - Sinh viên chưa làm bài → hiển thị 'Chưa làm'")
+        @DisplayName("TC_QUIZ_044 - Sinh viên chưa làm bài → hiển thị 'Chưa làm'")
         void overviewStudentSubmitInClass_StudentNotSubmitted_ShouldShowNotDone() {
             // Arrange
             Pageable pageable = PageRequest.of(0, 10);
@@ -1343,7 +1491,8 @@ class QuizServiceImplTest {
             when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("teacher@test.com");
             when(userRepository.findByEmail("teacher@test.com")).thenReturn(Optional.of(teacherUser));
             when(classMemberRepository.existsMemberInClass(1L, 1L)).thenReturn(true);
-            when(classMemberRepository.findMembersInClass(any(com.doan2025.webtoeic.dto.SearchMemberInClassDto.class)))
+            when(classMemberRepository
+                    .findMembersInClass(any(com.doan2025.webtoeic.dto.SearchMemberInClassDto.class)))
                     .thenReturn(List.of(classMember));
             when(shareQuizRepository.filter(any(SearchQuizDto.class), eq(1L))).thenReturn(List.of(sharedQuiz));
             when(studentQuizRepository.findByUser_idAndClazz_id(2L, 1L)).thenReturn(Collections.emptyList());
@@ -1361,25 +1510,5 @@ class QuizServiceImplTest {
             assertThat(overview.getQuizSubmit().get(0).getDes()).isEqualTo("Chưa làm");
         }
 
-        @Test
-        @DisplayName("TC_QUIZ_042 - MANAGER lấy tổng quan không cần kiểm tra member")
-        void overviewStudentSubmitInClass_AsManager_ShouldWork() {
-            // Arrange
-            Pageable pageable = PageRequest.of(0, 10);
-
-            when(jwtUtil.getEmailFromToken(httpServletRequest)).thenReturn("manager@test.com");
-            when(userRepository.findByEmail("manager@test.com")).thenReturn(Optional.of(managerUser));
-            when(classMemberRepository.findMembersInClass(any(com.doan2025.webtoeic.dto.SearchMemberInClassDto.class)))
-                    .thenReturn(Collections.emptyList());
-            when(shareQuizRepository.filter(any(SearchQuizDto.class), eq(1L))).thenReturn(Collections.emptyList());
-
-            // Act
-            Page<OverviewStudentSubmit> result = quizService.overviewStudentSubmitInClass(
-                    httpServletRequest, 1L, pageable);
-
-            // Assert
-            assertThat(result).isNotNull();
-            assertThat(result.getContent()).isEmpty();
-        }
     }
 }

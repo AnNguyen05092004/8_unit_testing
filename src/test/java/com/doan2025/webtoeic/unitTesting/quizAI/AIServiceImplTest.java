@@ -187,5 +187,41 @@ class AIServiceImplTest {
             verify(chatClient).prompt();
             verify(requestSpec).call();
         }
+
+        /**
+         * UT_AI_006: AI trả về danh sách câu hỏi rỗng khi file không có nội dung MCQ.
+         * Mapped: TC_FN_035 Pass – file PDF không có câu hỏi trắc nghiệm hợp lệ
+         */
+        @Test
+        @DisplayName("UT_AI_006 - AI trả về empty list khi file không có MCQ hợp lệ [TC_FN_035]")
+        void analysisWithAI_WhenNoMCQContent_ShouldReturnEmptyQuestionList() {
+            // Arrange
+            String url = "https://example.com/no_mcq.pdf";
+
+            RangeTopic rangeTopic = new RangeTopic();
+            rangeTopic.setContent("GRAMMAR");
+            ScoreScale scoreScale = new ScoreScale();
+            scoreScale.setTitle("EASY");
+
+            when(readerService.readContentOfFile(url)).thenReturn("This is a plain essay, no questions.");
+            when(rangeTopicRepository.findAll()).thenReturn(List.of(rangeTopic));
+            when(scoreScaleRepository.findAll()).thenReturn(List.of(scoreScale));
+            when(chatClient.prompt()).thenReturn(requestSpec);
+            when(requestSpec.system(anyString())).thenReturn(requestSpec);
+            when(requestSpec.user(anyString())).thenReturn(requestSpec);
+            when(requestSpec.options(any(ChatOptions.class))).thenReturn(requestSpec);
+            when(requestSpec.call()).thenReturn(callResponseSpec);
+            // AI không tìm thấy MCQ → trả về danh sách rỗng
+            when(callResponseSpec.entity(any(ParameterizedTypeReference.class)))
+                    .thenReturn(List.of());
+
+            // Act
+            AiResponse result = aiService.analysisWithAI(url);
+
+            // Assert
+            assertThat(result).isNotNull();
+            assertThat(result.getUrl()).isEqualTo(url);
+            assertThat(result.getQuestions()).isEmpty();
+        }
     }
 }
