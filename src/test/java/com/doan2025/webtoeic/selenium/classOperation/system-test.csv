@@ -1,0 +1,640 @@
+Test code,Test Type,Purpose,Steps,Test Data,Expected result,Date,Result,Explaination
+,,Function: Class Operation,,,,,,
+,,Preconditions: Teacher/Staff/Manager logged in,,,,,,
+,,General Interface,,,,,,
+,,UI-01 Access and Route Authorization (TC_UI_001 - TC_UI_005),,,,,,
+TC_UI_001,UI Navigation Testing,Verify that teacher can log in and open /dashboard.,"1. Log in with a valid teacher account.
+2. Navigate to /dashboard.",- Role: teacher,Dashboard loads successfully and user is not redirected to an unauthorized page.,26-03-26,Pass,Validates entry point for authorized classroom role.
+TC_UI_002,UI Navigation Testing,Verify that manager can log in and open /dashboard.,"1. Log in with a valid manager account.
+2. Navigate to /dashboard.",- Role: manager,Dashboard loads successfully.,26-03-26,Pass,Confirms manager dashboard access.
+TC_UI_003,UI Navigation Testing,Verify that consultant can log in and open /dashboard.,"1. Log in with a valid consultant account.
+2. Navigate to /dashboard.",- Role: consultant,Dashboard loads successfully.,26-03-26,Pass,Confirms consultant dashboard access.
+TC_UI_004,UI Authorization Testing,Verify that student cannot access /dashboard/class-management.,"1. Log in with a student account.
+2. Open /dashboard/class-management.",- Role: student,User is denied access or redirected according to permission policy.,26-03-26,Pass,Ensures route protection is active for unauthorized role.
+TC_UI_005,UI Menu Testing,Verify class-management menu item visibility for authorized roles.,"1. Log in as teacher, manager, consultant in separate runs.
+2. Check sidebar menus.","- Roles: teacher, manager, consultant",Class-management menu is visible for all authorized roles.,26-03-26,Pass,Checks role-based menu rendering.
+,,UI-02 Class Management Page States (TC_UI_006 - TC_UI_008),,,,,,
+TC_UI_006,UI Layout Testing,Verify Class Management page loads without broken layout.,"1. Open /dashboard/class-management.
+2. Observe page header, filter section, and table container.",- Any authorized account,No visual break; main sections render correctly.,26-03-26,Pass,Validates baseline UI integrity.
+TC_UI_007,UI Loading State Testing,Verify loading state while class list is being fetched.,"1. Open Class Management page.
+2. Observe loading indicator before data appears.",- Any authorized account,Loading indicator appears and then disappears when data is ready.,26-03-26,Pass,Confirms expected asynchronous UX behavior.
+TC_UI_008,UI Empty State Testing,Verify empty state when no class matches current filter.,"1. Apply a filter that returns no data.
+2. Observe table area.",- Search keyword with no match,Empty state message is shown; page remains stable.,26-03-26,Pass,Checks no-data presentation.
+,,UI-03 Role-Based Control Visibility (TC_UI_009 - TC_UI_011),,,,,,
+TC_UI_009,Role-based UI Visibility Testing,Verify teacher cannot see management-only controls.,"1. Log in as teacher.
+2. Open Class Management.
+3. Check for ""Thêm l?p h?c m?i"" and ""Qu?n lý phòng h?c"" controls.",- Role: teacher,Management-only controls are hidden.,26-03-26,Pass,Ensures least-privilege UI behavior.
+TC_UI_010,Role-based UI Visibility Testing,Verify manager sees full management controls.,"1. Log in as manager.
+2. Open Class Management.
+3. Check search, teacher filter, date filter, ""Thêm l?p h?c m?i"", ""Qu?n lý phòng h?c"".",- Role: manager,All expected management controls are visible.,26-03-26,Pass,Confirms manager UI capability.
+TC_UI_011,Role-based UI Visibility Testing,Verify consultant sees full management controls.,"1. Log in as consultant.
+2. Open Class Management.
+3. Check management controls including ""Thêm l?p h?c m?i"" and ""Qu?n lý phòng h?c"".",- Role: consultant,All expected management controls are visible.,26-03-26,Pass,Confirms consultant staff-equivalent UI capability.
+,,UI-04 Class Detail Entry and Return Navigation (TC_UI_012 - TC_UI_014),,,,,,
+TC_UI_012,UI Navigation Testing,Verify navigation from class list to class detail by class name link.,"1. Open Class Management.
+2. Click a class name in the table.",- Existing class row,User is routed to /dashboard/class-management/{classId}.,26-03-26,Pass,Validates primary detail navigation entry.
+TC_UI_013,UI Navigation Testing,Verify navigation from class list to class detail by view icon.,"1. Open Class Management.
+2. Click ""Xem"" action icon for one class.",- Existing class row,Detail page opens for selected class.,26-03-26,Pass,Validates secondary detail navigation entry.
+TC_UI_014,UI Breadcrumb Testing,Verify breadcrumb from class detail returns to class list page.,"1. Open a class detail page.
+2. Click breadcrumb ""Qu?n lý l?p h?c"" to return to Class Management.",- Existing class detail page,User returns to Class Management with stable UI.,26-03-26,Pass,Confirms backward navigation pattern.
+,,UI-05 Class Detail Tab Navigation (TC_UI_015 - TC_UI_020),,,,,,
+TC_UI_015,UI Tab Navigation Testing,Verify default tab on class detail is Overview.,"1. Open class detail.
+2. Observe selected tab.",- Existing class,Overview tab is selected by default.,26-03-26,Pass,Ensures deterministic initial state.
+TC_UI_016,UI Tab Navigation Testing,Verify General Information tab switches correctly.,"1. Open class detail.
+2. Click ""Thông tin chung"" tab.",- Existing class,General Information content renders correctly.,26-03-26,Pass,Confirms tab panel mapping.
+TC_UI_017,UI Tab Navigation Testing,Verify Student List tab switches correctly.,"1. Open class detail.
+2. Click ""Danh sách H?c viên"" tab.",- Existing class,Student list panel loads with table and actions.,26-03-26,Pass,Confirms tab content behavior.
+TC_UI_018,UI Tab Navigation Testing,Verify Schedule tab switches correctly.,"1. Open class detail.
+2. Click ""L?ch h?c"" tab.",- Existing class,Schedule panel displays expected schedule data or empty state.,26-03-26,Pass,Confirms schedule panel rendering.
+TC_UI_019,UI Tab Navigation Testing,Verify Notification tab switches correctly.,"1. Open class detail.
+2. Click ""Thông báo"" tab.",- Existing class,Notification panel displays list and controls by role permissions.,26-03-26,Pass,Confirms notification panel integration.
+TC_UI_020,UI Tab Navigation Testing,Verify Attendance and Quiz tabs switch correctly and page does not crash on rapid tab changes.,"1. Open class detail.
+2. Switch between Attendance and Quiz tabs repeatedly.",- Existing class,Correct panel appears every time; no crash or visual corruption.,26-03-26,Pass,Validates tab state stability.
+,,UI-06 Dashboard Shell and Sidebar Behavior (TC_UI_021 - TC_UI_025),,,,,,
+TC_UI_021,Dashboard Layout Testing,Verify sidebar collapse and expand behavior on desktop dashboard.,"1. Open /dashboard on desktop viewport.
+2. Click sidebar toggle button.
+3. Click toggle again.",- Desktop viewport width > 768,Sidebar collapses and expands correctly; menu remains usable in both states.,26-03-26,Pass,Validates core dashboard shell interaction.
+TC_UI_022,Responsive UI Testing,Verify sidebar auto-collapses on mobile viewport.,"1. Open /dashboard on mobile viewport.
+2. Observe sidebar initial state.",- Mobile viewport width <= 768,Sidebar is collapsed by default on mobile.,26-03-26,Pass,Ensures mobile-friendly default navigation state.
+TC_UI_023,Overlay Interaction Testing,Verify mobile overlay closes sidebar when tapping outside menu.,"1. Open /dashboard on mobile viewport.
+2. Expand sidebar.
+3. Tap overlay outside sidebar.",- Mobile viewport width <= 768,Sidebar closes and overlay disappears.,26-03-26,Pass,Validates expected mobile navigation UX.
+TC_UI_024,Role-based Menu Testing,"Verify ""Qu?n lý l?p h?c"" appears in sidebar for teacher, manager, and consultant.","1. Log in as teacher, manager, consultant in separate runs.
+2. Open /dashboard.
+3. Check sidebar menu items.","- Roles: teacher, manager, consultant","""Qu?n lý l?p h?c"" is visible for all three roles.",26-03-26,Pass,Checks role-based menu consistency with classroom operations access.
+TC_UI_025,Sidebar Navigation Testing,"Verify clicking ""Qu?n lý l?p h?c"" from sidebar routes to /dashboard/class-management.","1. Open /dashboard.
+2. Click sidebar item ""Qu?n lý l?p h?c"".",- Any authorized role,User is routed to /dashboard/class-management and page content loads.,26-03-26,Pass,Validates main navigation entry into classroom operations.
+,,UI-07 Class Management Actions and Modals (TC_UI_026 - TC_UI_032),,,,,,
+TC_UI_026,UI Action Visibility Testing,Verify action controls are visible in class table rows.,"1. Open /dashboard/class-management.
+2. Check one row in class table.
+3. Verify actions ""Xem"", ""S?a"", ""H?y l?p"" are shown.",- Any class row,All expected row actions are visible.,26-03-26,Pass,Confirms baseline action visibility in class table UI.
+TC_UI_027,UI Disabled State Testing,"Verify ""H?y l?p"" button disabled state for non-cancelable statuses.","1. Open class table.
+2. Find rows with status ""?ã h?y"" or ""?ã hoàn thành"".
+3. Check ""H?y l?p"" button state.",- Class statuses: CANCELED/CANCELLED/COMPLETED/FINISHED,"""H?y l?p"" action is disabled for non-cancelable rows.",26-03-26,Pass,Validates status-based disabling in row action UI.
+TC_UI_028,Modal Open Testing,"Verify ""Thêm l?p h?c m?i"" opens class form modal correctly.","1. Open /dashboard/class-management as manager or consultant.
+2. Click ""Thêm l?p h?c m?i"".
+3. Check modal title and buttons.",- Role: manager or consultant,Class form modal opens with expected fields and controls.,26-03-26,Pass,Confirms create-class modal trigger and layout.
+TC_UI_029,Confirmation Modal UI Testing,Verify cancel-class confirmation modal content and actions.,"1. Click ""H?y l?p"" in one class row.
+2. Observe modal title and body text.
+3. Verify buttons ""Xác nh?n"" and ""H?y"".",- Existing class row,Confirmation modal shows class name and both action buttons.,26-03-26,Pass,Validates destructive-action confirmation dialog UI.
+TC_UI_030,Modal Open and Close Testing,"Verify ""Qu?n lý phòng h?c"" modal opens and closes normally.","1. Click ""Qu?n lý phòng h?c"".
+2. Verify modal title ""Qu?n lý phòng h?c"" appears.
+3. Close modal by cancel action.",- Role: manager or consultant,Room management modal opens and closes without UI errors.,26-03-26,Pass,Confirms room-management modal lifecycle on UI.
+TC_UI_031,Form Toggle UI Testing,"Verify room add-form appears when clicking ""Thêm phòng m?i"".","1. Open room management modal.
+2. Click ""Thêm phòng m?i"".
+3. Check form fields and buttons ""Thêm"", ""H?y"".",- Room modal opened,Inline add form appears with required controls.,26-03-26,Pass,Validates add-room form visibility and control rendering.
+TC_UI_032,UI Empty State Testing,Verify schedule tab empty state UI is shown when no schedules exist.,"1. Open class detail tab ""L?ch h?c"" for class with no schedules.
+2. Observe empty-state section.
+3. Verify button ""T?o l?ch h?c ??u tiên"".",- Class with zero schedules,Empty state and create-first-schedule button are visible.,26-03-26,Pass,Confirms clear empty-state guidance on schedule UI.
+,,UI-08 Detail Tabs Interaction Density (TC_UI_033 - TC_UI_040),,,,,,
+TC_UI_033,Toolbar UI Testing,Verify notification tab toolbar controls are displayed.,"1. Open tab ""Thông báo"".
+2. Check controls: search box, date range picker, button ""T?o thông báo"".",- Existing class detail page,All expected toolbar controls are visible and aligned.,26-03-26,Pass,Validates notification tab toolbar completeness.
+TC_UI_034,Switch Confirmation UI Testing,Verify confirm dialog appears when toggling notification visibility switch.,"1. Open tab ""Thông báo"".
+2. Toggle one notification switch.
+3. Observe confirmation modal title.",- Existing notification item,Confirmation dialog is shown before applying state change.,26-03-26,Pass,Confirms guard UI before notification visibility change.
+TC_UI_035,Tab Toolbar UI Testing,Verify quiz tab toolbar contains search and assign controls.,"1. Open tab ""Bài ki?m tra"".
+2. Check search input.
+3. Check button ""Giao bài ki?m tra"".",- Existing class detail page,Quiz toolbar controls are visible and interactive.,26-03-26,Pass,Validates quiz-management toolbar structure.
+TC_UI_036,Modal Button State Testing,"Verify ""Giao bài"" button is disabled until one quiz is selected.","1. Open modal ""Giao bài ki?m tra cho l?p"".
+2. Observe ""Giao bài"" button before selecting row.
+3. Select one quiz and re-check button state.",- Pull quiz modal,Button is disabled before selection and enabled after selection.,26-03-26,Pass,Confirms selection-dependent CTA state in quiz assign modal.
+TC_UI_037,Bulk Action Button State Testing,"Verify ""Xóa ?ã ch?n"" button in student tab disabled when no row selected.","1. Open tab ""Danh sách H?c viên"".
+2. Ensure no row is selected.
+3. Check ""Xóa ?ã ch?n"" button state.",- Student list table,"""Xóa ?ã ch?n"" remains disabled with zero selection.",26-03-26,Pass,Validates safe default state for bulk destructive action.
+TC_UI_038,Modal Header and Footer UI Testing,Verify add-students modal header and primary actions are rendered.,"1. Open ""Thêm h?c viên"" modal.
+2. Verify title ""Thêm h?c viên vào l?p"".
+3. Verify buttons ""Thêm"" and ""H?y"".",- Student list tab,Modal title and action buttons are visible and correctly labeled.,26-03-26,Pass,Confirms add-student modal semantic UI completeness.
+TC_UI_039,Role-based Button State Testing,"Verify attendance primary CTA state by role on tab ""?i?m danh"".","1. Open tab ""?i?m danh"" as teacher.
+2. Check button ""?i?m danh bu?i h?c hi?n t?i"" state.
+3. Repeat as manager or consultant.","- Roles: teacher, manager, consultant",Teacher sees enabled button; non-teacher roles see disabled button.,26-03-26,Pass,Validates UI permission state for attendance primary action.
+TC_UI_040,Summary Widget UI Testing,Verify attendance modal summary tags and action buttons render correctly.,"1. Open attendance modal from ""?i?m danh bu?i h?c hi?n t?i"".
+2. Check summary tags (total, attended, not attended).
+3. Check action buttons ""?ánh d?u t?t c? có m?t"" and ""L?u ?i?m danh"".",- Class with students,Summary widgets and action buttons are displayed without layout break.,26-03-26,Pass,Confirms attendance modal information density and action clarity.
+,,UI-09 Advanced Modal and Table States (TC_UI_041 - TC_UI_050),,,,,,
+TC_UI_041,Modal State Transition Testing,Verify schedule detail modal switches correctly between view mode and edit mode.,"1. Open tab ""L?ch h?c"" and click one schedule item.
+2. Verify view mode content is shown.
+3. Click ""Ch?nh s?a"" and verify form mode is shown.
+4. Click ""H?y ch?nh s?a"".",- Existing schedule item,Modal toggles view and edit states correctly without losing modal context.,26-03-26,Pass,Validates internal state transitions of schedule detail modal UI.
+TC_UI_042,Modal Action Visibility Testing,Verify schedule detail modal footer actions in view mode.,"1. Open schedule detail modal.
+2. Check footer actions.",- Existing schedule item,"Buttons ""H?y bu?i h?c"", ""Ch?nh s?a"", and ""?óng"" are visible in view mode.",26-03-26,Pass,Confirms expected action set for schedule detail modal.
+TC_UI_043,Input Constraint UI Testing,"Verify ""Th?i gian k?t thúc"" in quiz settings modal cannot select time earlier than start time by date picker restriction.","1. Open tab ""Bài ki?m tra"".
+2. Open quiz settings modal.
+3. Pick a start time.
+4. Try selecting end date before start date.",- Existing shared quiz,Disallowed end date options are disabled in picker UI.,26-03-26,Pass,Validates date-picker disabledDate constraint in quiz settings modal.
+TC_UI_044,Toggle Control UI Testing,Verify active-state switch and status helper text in quiz settings modal.,"1. Open quiz settings modal.
+2. Toggle active switch on and off.
+3. Observe helper text under switch.",- Existing shared quiz,Switch label and helper text update consistently with state.,26-03-26,Pass,Confirms clarity of active/inactive quiz state controls.
+TC_UI_045,Visualization UI Testing,"Verify quiz statistic modal shows donut chart, legend, and score threshold slider.","1. Open ""Bài ki?m tra"" tab.
+2. Open ""Th?ng kê ?i?m"" from quiz actions.
+3. Observe chart and legend.
+4. Move score threshold slider.",- Quiz with submissions,"Chart, legend, and slider are displayed and update without UI break.",26-03-26,Pass,Validates core analytic visualization elements in statistic modal.
+TC_UI_046,Submission Table UI Testing,Verify submitted-quiz list modal filter controls and table rendering.,"1. Open submitted quiz list modal.
+2. Verify controls: search, score from, score to, ""L?c"".
+3. Verify table columns and pagination area.",- Quiz with submission records,Filter controls and table structure are fully rendered.,26-03-26,Pass,Confirms submission list modal UI completeness.
+TC_UI_047,Detail Modal Content UI Testing,Verify submitted-quiz detail modal displays question list and answer highlight states.,"1. Open submitted quiz list modal.
+2. Click ""Chi ti?t"" on one submission.
+3. Observe question blocks and answer markings.",- One submitted quiz with answer data,Detail modal shows question content and distinct styles for correct and chosen answers.,26-03-26,Pass,Validates answer-state visual semantics in submission detail UI.
+TC_UI_048,Exercise Submission Modal UI Testing,Verify exercise submission list modal toolbar and table actions in notification tab.,"1. Open tab ""Thông báo"".
+2. Open ""Xem bài n?p"" for one exercise notification.
+3. Verify search box, ""Tìm ki?m"", ""Làm m?i"", and table.",- Exercise-type notification,Toolbar controls and submissions table render correctly.,26-03-26,Pass,Confirms exercise submission management UI components.
+TC_UI_049,Deadline Badge UI Testing,Verify expired-deadline tag in exercise submission modal.,"1. Open submission list modal for notification with past due date.
+2. Check footer deadline section.",- notification.toDate earlier than current time,"Tag ""?ã h?t h?n"" is shown next to deadline text.",26-03-26,Pass,Validates overdue visual indicator for exercise submissions.
+TC_UI_050,Mutual Exclusion UI State Testing,"Verify room management ""S?a"" actions are disabled while add mode is active.","1. Open ""Qu?n lý phòng h?c"" modal.
+2. Click ""Thêm phòng m?i"".
+3. Check edit buttons in room table.",- Room management modal with room list,"Row ""S?a"" actions are disabled while add mode is active.",26-03-26,Pass,Confirms mutual exclusion behavior between add and edit room states.
+,,UI-10 Overview and Attachment Usability (TC_UI_051 - TC_UI_055),,,,,,
+TC_UI_051,Dynamic Column UI Testing,"Verify ""T?ng quan"" table renders dynamic quiz columns when quiz data exists.","1. Open tab ""T?ng quan"".
+2. Check fixed columns and dynamic quiz columns.
+3. Hover truncated quiz title.",- Class with at least one quiz column,Dynamic quiz columns appear with tooltip support for long titles.,26-03-26,Pass,Validates dynamic table structure and title tooltip behavior.
+TC_UI_052,Table Scroll UI Testing,Verify horizontal scrolling in overview table with many quiz columns.,"1. Open ""T?ng quan"" with multiple quizzes.
+2. Scroll table horizontally.
+3. Check fixed columns remain visible.",- Class with many quizzes,Horizontal scroll works and fixed columns keep expected position.,26-03-26,Pass,Confirms wide-table usability for overview analytics.
+TC_UI_053,Attachment Chip UI Testing,Verify attachment chips in notification table show open and download actions.,"1. Open tab ""Thông báo"" with records containing attachments.
+2. Inspect ""T?p ?ính kèm"" cell.
+3. Verify open and download icons per file chip.",- Notification item with attachDocumentClasses,Each attachment displays readable filename and both open/download actions.,26-03-26,Pass,Validates attachment usability in notification list UI.
+TC_UI_054,Pinned Indicator UI Testing,Verify pinned notification indicator is shown in content column.,"1. Open tab ""Thông báo"".
+2. Find notification with pinned flag.
+3. Observe icon in content cell.",- Notification with isPin = true,Pinned star indicator is displayed for pinned notifications.,26-03-26,Pass,Confirms visual distinction for pinned notifications.
+TC_UI_055,Role Label and Avatar Fallback UI Testing,Verify dashboard sidebar shows role label and avatar fallback without visual break.,"1. Open /dashboard.
+2. Observe user role label and avatar area.
+3. Test case where avatar URL is broken.",- User profile with empty or invalid avatarUrl,Role label is shown and fallback avatar is rendered gracefully.,26-03-26,Pass,Validates robustness of sidebar profile presentation UI.
+,,UI-11 Schedule Calendar UX Completeness (TC_UI_056 - TC_UI_062),,,,,,
+TC_UI_056,Calendar Interaction UI Testing,Verify clicking an empty date cell opens create-schedule modal.,"1. Open tab ""L?ch h?c"".
+2. Click a date cell with no schedules.",- Date with zero sessions,"Modal ""T?o l?ch h?c m?i"" opens.",26-03-26,Pass,Confirms primary calendar-to-create interaction.
+TC_UI_057,Calendar Interaction UI Testing,Verify clicking a date cell with existing schedules does not open create modal immediately.,"1. Open tab ""L?ch h?c"".
+2. Click a date cell that already has schedules.",- Date with existing sessions,No create modal is auto-opened by date click.,26-03-26,Pass,"Matches current behavior where schedule items are opened by clicking session rows, not date cell."
+TC_UI_058,Calendar Density UI Testing,"Verify ""+N bu?i"" overflow tag appears when one date has more than three sessions.","1. Open tab ""L?ch h?c"" on a date containing over three sessions.
+2. Observe date cell content.",- Date with >=4 schedules,"Only first three sessions are listed and overflow tag ""+N bu?i"" is shown.",26-03-26,Pass,Validates condensed rendering for high-density calendar days.
+TC_UI_059,Tooltip UI Testing,Verify schedule item tooltip displays title and time range.,"1. Open tab ""L?ch h?c"".
+2. Hover on one schedule item in calendar cell.",- Existing schedule item,Tooltip shows session title with start/end time.,26-03-26,Pass,Confirms contextual information visibility in dense calendar UI.
+TC_UI_060,Statistics Widget UI Testing,"Verify schedule statistics tags (T?ng, Ho?t ??ng, ?ã h?y) are displayed.","1. Open tab ""L?ch h?c"".
+2. Observe right side stats area in header.",- Any class with schedule data,All three stats tags are visible and formatted correctly.,26-03-26,Pass,Validates quick KPI visibility in schedule header.
+TC_UI_061,Loading State UI Testing,Verify schedule tab loading spinner appears while fetching schedules.,"1. Open tab ""L?ch h?c"".
+2. Observe loading phase.",- Simulated normal API load,Spinner appears during fetch and disappears after data is rendered.,26-03-26,Pass,Confirms asynchronous loading feedback for schedule tab.
+TC_UI_062,Refresh Button UI Testing,"Verify clicking ""Làm m?i"" triggers visual refresh state.","1. Open tab ""L?ch h?c"".
+2. Click ""Làm m?i"".
+3. Observe loading state and table/calendar refresh.",- Existing schedule tab data,Refresh action triggers loading state and updated render cycle.,26-03-26,Pass,Validates explicit manual refresh UX path.
+,,UI-12 Overview Tab UX Completeness (TC_UI_063 - TC_UI_067),,,,,,
+TC_UI_063,Overview Loading UI Testing,"Verify tab ""T?ng quan"" shows loading spinner while fetching combined overview data.","1. Open tab ""T?ng quan"".
+2. Observe loading state before table is rendered.",- Any class id with normal API latency,Spinner is shown during API calls and hidden after render completes.,26-03-26,Pass,Confirms asynchronous feedback for overview data fetch.
+TC_UI_064,Overview Empty State UI Testing,"Verify tab ""T?ng quan"" displays empty state when student overview data is unavailable.","1. Open tab ""T?ng quan"" for class without overview rows.
+2. Observe content area.",- Class with zero merged student rows,"Empty placeholder with message ""Ch?a có d? li?u h?c viên"" is shown.",26-03-26,Pass,Validates graceful no-data rendering in overview tab.
+TC_UI_065,Overview Score Badge UI Testing,Verify score badges in dynamic quiz columns follow status color rules.,"1. Open tab ""T?ng quan"" with quiz results containing ""H?p l?"", ""Vi ph?m"", and ""Ch?a làm"".
+2. Inspect score cells for each status.",- Mixed quiz submit statuses,"""H?p l?"" uses green, ""Vi ph?m"" uses red, and ""Ch?a làm"" shows neutral badge ""-"".",26-03-26,Pass,Ensures visual meaning of score state is consistent.
+TC_UI_066,Overview Summary Counter UI Testing,Verify summary counters show total students and quiz count accurately.,"1. Open tab ""T?ng quan"".
+2. Compare counters with rendered table row count and dynamic quiz columns.",- Class with known student count and quiz count,Counters match displayed data after each refresh.,26-03-26,Pass,Confirms header KPI consistency with table content.
+TC_UI_067,Overview Error Message UI Testing,Verify overview tab shows controlled error message when one of overview APIs fails.,"1. Simulate failure in quiz overview API or attendance overview API.
+2. Open tab ""T?ng quan"".",- API response error or timeout,"User sees message ""Không th? t?i d? li?u t?ng quan"" and UI does not crash.",26-03-26,Pass,Validates failure-path UX stability for combined overview fetch.
+,,UI-13 General Information Tab Completeness (TC_UI_068 - TC_UI_072),,,,,,
+TC_UI_068,Information Layout UI Testing,"Verify tab ""Thông tin chung"" displays all expected description rows.","1. Open class detail.
+2. Click tab ""Thông tin chung"".
+3. Verify row labels: ""Tên l?p h?c"", ""Tiêu ??"", ""Giáo viên"", ""Ngày t?o"", ""Mô t?"".",- Existing class with full metadata,All required labels and corresponding values are rendered in bordered description layout.,26-03-26,Pass,Confirms UI completeness of static information panel.
+TC_UI_069,Date Formatting UI Testing,"Verify ""Ngày t?o"" field is displayed with format DD/MM/YYYY HH:mm.","1. Open tab ""Thông tin chung"".
+2. Compare displayed created date with source timestamp.",- classData.createdAt with known timestamp,Rendered created date follows DD/MM/YYYY HH:mm format.,26-03-26,Pass,Validates moment-based display format consistency for class creation date.
+TC_UI_070,Fallback Content UI Testing,"Verify ""Mô t?"" fallback text appears when class description is empty.","1. Open tab ""Thông tin chung"" for class with empty description.
+2. Observe value in ""Mô t?"" row.",- classData.description = null or empty,"UI displays ""Không có mô t?"".",26-03-26,Pass,Confirms user-friendly fallback for missing description data.
+TC_UI_071,Teacher Name Rendering UI Testing,"Verify ""Giáo viên"" row combines first name and last name correctly.","1. Open tab ""Thông tin chung"".
+2. Compare displayed teacher name with source teacher object.",- classData.teacher.firstName and classData.teacher.lastName,Teacher full name is rendered as one readable string without missing segment.,26-03-26,Pass,Validates mapping of nested teacher fields to UI string output.
+TC_UI_072,Long Text Readability UI Testing,Verify long values in title or description remain readable without broken layout.,"1. Open tab ""Thông tin chung"" for class with long title and description.
+2. Check row wrapping and card layout.",- title/description length > 150 characters,"Text wraps naturally, no overlap, and descriptions remain legible.",26-03-26,Pass,Ensures resilience of information layout under long-content conditions.
+,,UI-14 Student List Tab Completeness (TC_UI_073 - TC_UI_077),,,,,,
+TC_UI_073,Search and Reset UI Testing,"Verify search box in ""Danh sách H?c viên"" filters list and resets when cleared.","1. Open tab ""Danh sách H?c viên"".
+2. Search by student keyword in name, email, or phone.
+3. Clear search input.",- searchString with one matching student,Filtered result is shown after search and full list is restored after clear.,26-03-26,Pass,Validates search lifecycle and clear behavior in student list toolbar.
+TC_UI_074,Filter Combination UI Testing,Verify status and join-date filters work together in Student List tab.,"1. Open tab ""Danh sách H?c viên"".
+2. Apply one or more status values.
+3. Apply join date filter.
+4. Observe table results.","- status: ACTIVE and INACTIVE
+- joinDate: valid date",Table updates according to combined filters without UI break.,26-03-26,Pass,Confirms multi-filter behavior in student membership table.
+TC_UI_075,Delete Confirmation UI Testing,Verify delete confirmation modal content is correct for single and bulk student removal.,"1. Trigger delete on one student using row action.
+2. Trigger delete on multiple students using ""Xóa ?ã ch?n"".
+3. Compare confirmation message content.",- One member and multiple members selected,Modal text matches singular and plural scenarios accurately.,26-03-26,Pass,Validates confirmation UX clarity for destructive actions.
+TC_UI_076,Add Modal Candidate List UI Testing,"Verify ""Thêm h?c viên"" modal excludes users already in class from selectable table.","1. Open ""Thêm h?c viên vào l?p"" modal.
+2. Compare modal user rows with current class member list.",- existingUserIds from current class members,Users already in class do not appear in add-candidate table.,26-03-26,Pass,Confirms duplicate prevention at candidate rendering layer.
+TC_UI_077,Selection State UI Testing,Verify selected rows are cleared correctly after successful member removal and table refresh.,"1. Select multiple students in table.
+2. Execute remove action and confirm.
+3. Observe row selection state after refresh.",- selectedRowKeys contains removed memberIds,Removed ids are no longer selected and table state remains consistent.,26-03-26,Pass,Validates row-selection state cleanup after destructive operation.
+,,UI-15 Schedule Detail and Form UX Completeness (TC_UI_078 - TC_UI_082),,,,,,
+TC_UI_078,Schedule Empty State CTA Testing,Verify schedule tab empty state shows correct CTA and opens create modal.,"1. Open tab ""L?ch h?c"" for class with no schedules.
+2. Click button ""T?o l?ch h?c ??u tiên"".",- Class with zero schedules,Empty state is visible and create-schedule modal opens from CTA.,26-03-26,Pass,Confirms first-time schedule creation UX path.
+TC_UI_079,Schedule Detail Read-only UI Testing,Verify schedule detail modal shows complete read-only information before edit.,"1. Click one schedule item on calendar.
+2. Observe detail modal fields.","- Existing schedule with room, teacher, creator data","Modal shows title, date, start/end time, room, status, teacher, creator, and created date.",26-03-26,Pass,Validates information completeness in schedule detail dialog.
+TC_UI_080,Schedule Edit Mode Toggle UI Testing,Verify detail modal toggles between read-only and edit mode correctly.,"1. Open schedule detail modal.
+2. Click ""Ch?nh s?a"".
+3. Click ""H?y ch?nh s?a"".",- Existing schedule,Modal switches to edit form and can return to read-only state without data corruption.,26-03-26,Pass,Confirms edit-mode transition UX stability.
+TC_UI_081,Schedule Cancel Confirmation UI Testing,Verify schedule cancel action shows confirmation dialog with schedule title.,"1. Open schedule detail modal.
+2. Click ""H?y bu?i h?c"".
+3. Observe confirm dialog content.",- Existing schedule title,Confirmation modal is displayed with targeted schedule title and explicit confirm action.,26-03-26,Pass,Validates destructive confirmation UX for session cancellation.
+TC_UI_082,Schedule Form Room Input UX Testing,Verify edit form room input is user-friendly and consistent with room selection model used in create forms.,"1. Open schedule detail and switch to edit mode.
+2. Inspect field ""Phòng h?c"" input control.",- Existing schedule with room assignment,"Room selection should be consistent with create forms (searchable room list), not raw numeric id entry.",26-03-26,Fail,"Assessment: FAIL 
+Root cause: edit form currently uses InputNumber for roomId, inconsistent with create forms that use room selector and room metadata. 
+Action: replace roomId number input with room Select fed by room API."
+,,UI-16 Notification Tab UX Completeness (TC_UI_083 - TC_UI_087),,,,,,
+TC_UI_083,Notification Search and Date Filter UI Testing,Verify notification list updates correctly when combining keyword search and date range filter.,"1. Open tab ""Thông báo"".
+2. Enter keyword in search box.
+3. Apply date range filter.
+4. Clear each filter and observe list state.","- searchString matching one notification
+- dateRange covering partial dataset",List reflects combined filters and restores correctly when filters are cleared.,26-03-26,Pass,Confirms filter interaction behavior in notification toolbar.
+TC_UI_084,Notification Pin Priority UI Testing,Verify pinned notifications are displayed before non-pinned notifications in list ordering.,"1. Open tab ""Thông báo"" with mixed pinned and non-pinned items.
+2. Observe row order.",- Dataset with isPin true and false,"Pinned rows appear at top, then remaining rows sorted by createdAt descending.",26-03-26,Pass,Validates visual priority of pinned notifications.
+TC_UI_085,Notification Type Action Visibility UI Testing,"Verify button ""Xem bài n?p"" appears only for Exercise-type notifications.","1. Open tab ""Thông báo"".
+2. Compare action column for Exercise and non-Exercise rows.",- Mixed typeNotification values,Submission-list action is visible only on Exercise records.,26-03-26,Pass,Confirms type-dependent action visibility logic.
+TC_UI_086,Notification Form Edit Prefill UI Testing,Verify editing existing notification pre-fills type and date range consistently with original record.,"1. Open one Exercise notification for edit.
+2. Inspect pre-filled ""Lo?i thông báo"" and ""Th?i gian (t? - ??n)"" fields.",- Existing Exercise notification with valid fromDate and toDate,Edit form preserves original notification type and its date range fields.,26-03-26,Fail,"Assessment: FAIL 
+Root cause: edit form currently initializes typeNotification to default value 1 instead of mapping persisted backend type, which can hide or alter exercise-specific fields unexpectedly. 
+Action: map backend type to form value reliably on edit initialization."
+TC_UI_087,Submission Modal Due-date Indicator UI Testing,Verify submission modal shows overdue indicator when notification deadline has passed.,"1. Open ""Xem bài n?p"" for notification with past toDate.
+2. Observe due-date section at modal footer.",- notification.toDate earlier than current time,"Due-date text is shown and red tag ""?ã h?t h?n"" is displayed.",26-03-26,Pass,Validates deadline awareness in submission monitoring modal.
+,,UI-17 Attendance Tab UX Completeness (TC_UI_088 - TC_UI_092),,,,,,
+TC_UI_088,Attendance Role Guard UI Testing,"Verify attendance row action ""Ch?nh s?a"" follows role permission and is disabled for non-teacher users.","1. Open tab ""?i?m danh"" as teacher and observe row action buttons.
+2. Repeat as manager or consultant.","- Roles: teacher, manager, consultant",Teacher sees enabled edit buttons; non-teacher roles see disabled edit buttons with guidance tooltip.,26-03-26,Pass,Completes role-based UI coverage for per-session attendance editing.
+TC_UI_089,Attendance Create-mode Context UI Testing,"Verify attendance modal displays create-mode title and info alert when opened from ""?i?m danh bu?i h?c hi?n t?i"".","1. Open tab ""?i?m danh"".
+2. Click ""?i?m danh bu?i h?c hi?n t?i"".",- Teacher account with class data,Modal shows create-mode context (auto schedule selection indicator and guidance alert).,26-03-26,Pass,Validates clarity of create-mode attendance workflow.
+TC_UI_090,Attendance Save Enablement UI Testing,"Verify button ""L?u ?i?m danh"" remains disabled until at least one attendance status is changed.","1. Open attendance modal.
+2. Observe save button before making changes.
+3. Change one student status.",- Class with at least one student,Save button is disabled initially and becomes enabled after a valid status change.,26-03-26,Pass,Confirms change-driven save gating in attendance modal.
+TC_UI_091,Attendance Empty Student State UI Testing,Verify attendance modal shows empty placeholder when class has no students.,"1. Open attendance modal for class without member records.
+2. Observe content body.",- Class with zero members,"Modal shows empty state ""Ch?a có h?c sinh nào trong l?p"" without crash.",26-03-26,Pass,Validates no-member resilience in attendance operation UI.
+TC_UI_092,Attendance Table Time Presentation UI Testing,Verify attendance session time column displays date and time range consistently.,"1. Open tab ""?i?m danh"".
+2. Inspect one session row in ""Th?i gian"" column.",- Existing schedule statistics rows,Date and time range are rendered in expected format and remain readable across rows.,26-03-26,Pass,Confirms time presentation quality in attendance overview table.
+,,UI-18 Quiz Tab UX Completeness (TC_UI_093 - TC_UI_097),,,,,,
+TC_UI_093,Quiz Status Rendering UI Testing,"Verify quiz status tag changes correctly between ""Ch?a m?"", ""?ang m?"", ""?ã h?t h?n"", and ""T?m d?ng"".","1. Open tab ""Bài ki?m tra"".
+2. Prepare quizzes with different active flags and time windows.
+3. Observe status tags in table.","- Quiz paused, future window, active window, expired window",Status labels match business rules and are visually distinct.,26-03-26,Pass,Completes visual-state coverage for quiz availability lifecycle.
+TC_UI_094,Quiz Search Pagination UX Testing,Verify searching quizzes resets list to first page and keeps results consistent.,"1. Go to page > 1 in quiz list.
+2. Enter keyword and execute search.
+3. Observe page index and returned rows.",- searchString that narrows result set,Search should return filtered data on page 1 without stale-page flash.,26-03-26,Fail,"Assessment: FAIL 
+Root cause: search handler triggers fetch immediately after setting current page to 1, which can request with stale pagination state before effect-based refetch. 
+Action: centralize fetch on state change or pass explicit page=1 in search call."
+TC_UI_095,Quiz Delete Safety UI Testing,Verify deleting quiz from class requires explicit confirmation to avoid accidental removal.,"1. Open action menu of one quiz.
+2. Click ""Xóa kh?i l?p"".",- Existing shared quiz row,A confirmation dialog appears before irreversible remove action.,26-03-26,Fail,"Assessment: FAIL 
+Root cause: delete action executes directly without confirmation dialog in current UI flow. 
+Action: add Modal.confirm before delete API call."
+TC_UI_096,Quiz Time Input Constraint UI Testing,Verify end time picker prevents choosing a time earlier than start time on the same date.,"1. Open ""Giao bài ki?m tra"" modal or quiz settings modal.
+2. Set startAt on a day.
+3. Try selecting endAt earlier than startAt on same day.",- startAt and endAt on same date,UI blocks invalid same-day time selection (not only date-level restriction).,26-03-26,Fail,"Assessment: FAIL 
+Root cause: current picker constraint uses disabledDate only, so earlier time on same date may still be selectable. 
+Action: add disabledTime or custom validator for exact datetime ordering."
+TC_UI_097,Submitted Quiz Compliance Label UI Testing,Verify submission list displays accurate compliance label when submission note is missing or unknown.,"1. Open submitted-quiz list modal.
+2. Inspect rows where `des` is null/empty/non-standard.",- Submitted quiz rows with varied `des` values,"UI should not force unknown states into ""H?p l?"" label.",26-03-26,Fail,"Assessment: FAIL 
+Root cause: render branch currently maps any non-""Vi ph?m"" value to ""H?p l?"", which can mislabel unknown states. 
+Action: introduce neutral label for null/unknown `des`."
+,,Function,,,,,,
+,,"FN-01 Class List Search, Filter, and Pagination (TC_FN_001 - TC_FN_005)",,,,,,
+TC_FN_001,Functional Search Testing,Verify class search with valid keyword returns matching classes.,"1. Open Class Management.
+2. Enter keyword and submit search.",- searchString: TOEIC,Returned list contains only matching classes.,26-03-26,Pass,Validates search core behavior.
+TC_FN_002,Functional Filter Testing,Verify class filter by date range works correctly.,"1. Set start date and end date.
+2. Apply filter.","- fromDate:2026-03-01
+- toDate:2026-03-31",All returned classes are within specified date range.,26-03-26,Pass,Validates date filter logic.
+TC_FN_003,Functional Combined Filter Testing,Verify combined search and date filters apply as AND condition.,"1. Enter keyword.
+2. Set date range.
+3. Submit filters.","- searchString: TOEIC
+- fromDate:2026-03-01
+- toDate:2026-03-31",Each returned record satisfies both keyword and date constraints.,26-03-26,Pass,Confirms intersection logic.
+TC_FN_004,Functional Reset Testing,Verify Clear Filter resets all filtering conditions.,"1. Apply keyword and date filters.
+2. Click ""Xóa b? l?c"".",- Any active filter set,Filters reset to default and list reloads accordingly.,26-03-26,Pass,Validates reset behavior.
+TC_FN_005,Functional Pagination Testing,Verify pagination keeps current filter context.,"1. Apply filters.
+2. Go to next page.",- page and size parameters,Next page data respects current filter conditions.,26-03-26,Pass,Checks consistency across pages.
+,,FN-02 Class CRUD Operations (TC_FN_006 - TC_FN_010),,,,,,
+TC_FN_006,Class Creation Testing,Verify manager creates a new class successfully.,"1. Log in as manager.
+2. Open ""Thêm l?p h?c m?i"" modal.
+3. Submit valid class payload.","- name: OFFLINE_TOEIC_MGR_01
+- title: Offline TOEIC manager class",Class is created and visible in class list.,26-03-26,Pass,Validates happy path create operation.
+TC_FN_007,Class Creation Validation Testing,Verify required fields are validated when creating class.,"1. Open ""Thêm l?p h?c m?i"" modal.
+2. Leave required fields empty.
+3. Click ""T?o l?p"".",- Empty required fields,Validation errors are shown and no create request is completed.,26-03-26,Pass,Ensures front and back validation coherence.
+TC_FN_008,Class Creation Negative Testing,Verify duplicate class name is rejected.,"1. Open ""Thêm l?p h?c m?i"" modal.
+2. Enter existing class name.
+3. Click ""T?o l?p"".",- name: existing class name in database,Operation fails with business error; no duplicate class is created.,26-03-26,Fail,"Assessment: FAIL 
+Root cause: system does not correctly distinguish and reject existing class name in create flow. 
+Action: Add duplicate-name validation at API and show explicit conflict message in UI."
+TC_FN_009,Class Update Testing,Verify class update saves new class information.,"1. Open edit class action.
+2. Change editable fields.
+3. Save changes.",- Existing class id and updated payload,Class data is updated and reflected in list/detail view.,26-03-26,Pass,Validates update lifecycle.
+TC_FN_010,Class Delete or Cancel Testing,Verify manager can cancel or delete class based on business rule.,"1. Select class in list.
+2. Execute cancel or delete action.
+3. Confirm action in ""Xác nh?n"" dialog.",- classId list,Class status changes as expected; list refreshes correctly.,26-03-26,Pass,Validates class termination flow.
+,,FN-03 Room Management Operations (TC_FN_011 - TC_FN_013),,,,,,
+TC_FN_011,Room Management Testing,Verify room list loads in Room Management modal.,"1. Open ""Qu?n lý phòng h?c"" modal.
+2. Observe list loading and columns.",- manager or consultant account,Room list appears with valid room attributes.,26-03-26,Pass,Confirms room retrieval behavior.
+TC_FN_012,Room Creation Testing,Verify create room succeeds with valid payload.,"1. Open ""Qu?n lý phòng h?c"" modal.
+2. Enter valid room data.
+3. Click ""Thêm phòng h?c"".","- roomName: ROOM_101
+- isActive: true",Room is created and appears in room list.,26-03-26,Pass,Validates room create flow.
+TC_FN_013,Room Update Testing,Verify room update changes room information correctly.,"1. Select existing room.
+2. Edit room fields.
+3. Click ""C?p nh?t phòng h?c"".",- existing room id and update payload,Room is updated successfully.,26-03-26,Pass,Validates room update flow.
+,,FN-04 Attendance Permission Matrix (TC_FN_014),,,,,,
+TC_FN_014,Attendance Permission Testing,Verify teacher can create attendance while manager and consultant are restricted if policy requires.,"1. Open Attendance tab as teacher, manager, consultant in separate runs.
+2. Attempt attendance action.","- Roles: teacher, manager, consultant",Teacher can execute attendance; restricted roles are blocked with clear feedback.,26-03-26,Pass,Checks attendance role matrix.
+,,FN-05 Student Membership Add and Remove (TC_FN_015 - TC_FN_018),,,,,,
+TC_FN_015,Student Membership Add Testing,Verify adding one student to class succeeds.,"1. Open ""Danh sách H?c viên"" tab.
+2. Open ""Thêm h?c viên"" modal.
+3. Select one valid student.
+4. Click ""Thêm vào l?p"".","- payload: { id: classId, memberIds: [studentId] }",Student is added and visible in Student List.,26-03-26,Pass,Validates single add member action.
+TC_FN_016,Student Membership Bulk Add Testing,Verify adding multiple students to class succeeds.,"1. Open ""Thêm h?c viên"" modal.
+2. Select multiple students.
+3. Click ""Thêm vào l?p"".","- payload: { id: classId, memberIds: [id1, id2, id3] }",All selected students are added to class.,26-03-26,Pass,Validates bulk add behavior.
+TC_FN_017,Student Membership Remove Testing,Verify removing one student from class succeeds.,"1. In ""Danh sách H?c viên"", click ""Xóa"" on one student.
+2. Confirm action in ""Xác nh?n"" dialog.","- payload: { id: classId, memberIds: [studentId] }",Selected student is removed from class list.,26-03-26,Pass,Validates single remove action.
+TC_FN_018,Student Membership Bulk Remove Testing,Verify removing multiple students from class succeeds.,"1. Select multiple students in Student List.
+2. Click ""Xóa ?ã ch?n"".
+3. Confirm action in ""Xác nh?n"" dialog.","- payload: { id: classId, memberIds: [id1, id2] }",All selected students are removed.,26-03-26,Pass,Validates bulk remove action.
+,,FN-06 API Contract and Error Recovery (TC_FN_019 - TC_FN_020),,,,,,
+TC_FN_019,API Contract Testing,Verify class APIs return expected contract and status for valid request.,"1. Call POST /api/v1/class/filter.
+2. Call GET /api/v1/class/detail?id={classId}.",- Valid token and valid payload,Responses include code200 and expected data schema fields.,26-03-26,Pass,Confirms backend contract for class list and detail.
+TC_FN_020,Error Recovery Testing,"Verify UI behavior when class, room, or membership APIs fail.","1. Trigger API failure scenarios.
+2. Observe user messages and page stability.","- Simulated API errors (400,401,403,404,500)","UI shows clear error feedback, remains usable, and allows retry.",26-03-26,Pass,Validates resilience and recovery behavior.
+,,FN-07 Schedule Management (TC_FN_021 - TC_FN_025),,,,,,
+TC_FN_021,Schedule Creation Testing,"Verify creating a single schedule from ""L?ch h?c"" works correctly.","1. Open tab ""L?ch h?c"".
+2. Click ""T?o l?ch h?c"".
+3. Fill valid title/date/time/room.
+4. Click ""T?o"".",- Valid schedule payload,New schedule is created and shown on calendar.,26-03-26,Pass,Validates single schedule creation flow.
+TC_FN_022,Schedule Recurring Creation Testing,"Verify creating recurring schedules from ""T?o l?ch hàng tu?n"" works correctly.","1. Open tab ""L?ch h?c"".
+2. Click ""T?o l?ch hàng tu?n"".
+3. Fill date range, weekdays, time, room, title prefix.
+4. Click ""T?o"".",- Valid recurring schedule configuration,Multiple schedules are created according to selected weekdays.,26-03-26,Pass,Validates weekly recurring schedule generation.
+TC_FN_023,Schedule Validation Testing,Verify warning appears when recurring schedule setup creates zero sessions.,"1. Open ""T?o l?ch hàng tu?n"".
+2. Configure date range and weekdays that produce no valid session.
+3. Click ""T?o"".",- Non-matching range and weekday set,System shows warning modal and no schedule is created.,26-03-26,Pass,Covers edge case in recurring schedule rule processing.
+TC_FN_024,Schedule Update Testing,"Verify editing schedule details in ""Chi ti?t l?ch h?c"" updates data successfully.","1. Click one schedule item on calendar.
+2. Click ""Ch?nh s?a"".
+3. Update fields and click ""L?u thay ??i"".",- Existing schedule,Schedule data is updated and reflected in calendar/detail.,26-03-26,Pass,Validates schedule update path.
+TC_FN_025,Schedule Cancel Testing,"Verify canceling a schedule from ""Chi ti?t l?ch h?c"" works with confirmation.","1. Open schedule detail.
+2. Click ""H?y bu?i h?c"".
+3. Confirm in ""Xác nh?n"" dialog.",- Existing active schedule,Schedule status changes to canceled and calendar refreshes.,26-03-26,Pass,Validates cancel flow for class sessions.
+,,FN-08 Notification Management (TC_FN_026 - TC_FN_029),,,,,,
+TC_FN_026,Notification Creation Testing,"Verify creating notification from tab ""Thông báo"" works.","1. Open tab ""Thông báo"".
+2. Click ""T?o thông báo"".
+3. Enter required fields and click ""T?o m?i"".",- Type: Thông báo,Notification is created and appears in notification list.,26-03-26,Pass,Validates base announcement creation.
+TC_FN_027,Notification Exercise Validation Testing,Verify exercise notification requires time range.,"1. Open ""T?o thông báo"".
+2. Select type ""Bài t?p (có h?n n?p)"".
+3. Leave time range empty and submit.",- Type: Exercise without date range,Validation error is displayed and form cannot be submitted.,26-03-26,Pass,Validates conditional required field logic.
+TC_FN_028,Notification State Toggle Testing,Verify toggling notification active state via switch works with confirmation.,"1. Open tab ""Thông báo"".
+2. Toggle status switch for one item.
+3. Confirm action.",- Existing notification record,Notification state is updated and list reloads with new state.,26-03-26,Pass,Validates active or hidden status flow.
+TC_FN_029,Notification Delete Testing,Verify deleting notification works with confirmation dialog.,"1. Open tab ""Thông báo"".
+2. Click ""Xóa"" action.
+3. Confirm deletion.",- Existing notification record,Notification is removed from list.,26-03-26,Pass,Validates delete lifecycle for notifications.
+,,FN-09 Quiz Management in Class (TC_FN_030 - TC_FN_033),,,,,,
+TC_FN_030,Quiz Assignment Testing,"Verify assigning quiz to class from ""Bài ki?m tra"" tab works.","1. Open tab ""Bài ki?m tra"".
+2. Click ""Giao bài ki?m tra"".
+3. Select one quiz and click ""Giao bài"".",- Existing quiz,Quiz appears in class quiz list.,26-03-26,Pass,Validates quiz pull and assignment flow.
+TC_FN_031,Quiz Assignment Validation Testing,"Verify user cannot submit ""Giao bài"" without selecting a quiz.","1. Open modal ""Giao bài ki?m tra cho l?p"".
+2. Do not select any quiz.
+3. Click ""Giao bài"".",- No selected row,Warning message appears and no quiz is assigned.,26-03-26,Pass,Validates selection precondition before assignment.
+TC_FN_032,Quiz Active Toggle Testing,Verify toggling quiz switch between active and paused works.,"1. In tab ""Bài ki?m tra"", toggle quiz switch.
+2. Observe success message and list refresh.",- Existing shared quiz,"Quiz status updates correctly (""?ang m?"" or ""T?m d?ng"").",26-03-26,Pass,Validates quiz availability control.
+TC_FN_033,Quiz Delete Testing,Verify removing quiz from class via action menu works.,"1. Open action menu for one quiz.
+2. Click ""Xóa kh?i l?p"".",- Existing shared quiz,Quiz is removed from class list.,26-03-26,Pass,Validates quiz removal from class scope.
+,,FN-10 Overview and Attendance Extended Flows (TC_FN_034 - TC_FN_035),,,,,,
+TC_FN_034,Overview Merge Data Testing,"Verify tab ""T?ng quan"" merges attendance and quiz metrics correctly per student.","1. Open tab ""T?ng quan"".
+2. Check attendance counters and quiz score columns for a sample student.
+3. Click ""Làm m?i"".",- Class with attendance and quiz data,Merged row data is consistent after reload.,26-03-26,Pass,Validates combined analytics view integrity.
+TC_FN_035,Attendance Bulk Mark Testing,"Verify bulk action ""?ánh d?u t?t c? có m?t"" works in attendance modal.","1. Open tab ""?i?m danh"".
+2. Click ""?i?m danh bu?i h?c hi?n t?i"".
+3. Click ""?ánh d?u t?t c? có m?t"".
+4. Click ""L?u ?i?m danh"".",- Class with at least2 students,All students are saved with present status.,26-03-26,Pass,Validates bulk attendance operation.
+,,FN-11 Risk-Based Boundary and Timezone Cases (TC_FN_036 - TC_FN_043),,,,,,
+TC_FN_036,Boundary Value Testing,Verify schedule creation rejects invalid time range when end time is earlier than start time.,"1. Open tab ""L?ch h?c"".
+2. Click ""T?o l?ch h?c"".
+3. Set start time later than end time on the same date.
+4. Click ""T?o"".","- Date:2026-04-10
+- Start: 15:00
+- End: 14:00",Validation error is shown; schedule is not created.,26-03-26,Fail,"Assessment: FAIL 
+Root cause: reason: current form rules only check required fields and do not validate time ordering, so invalid range can pass client validation unless backend rejects it. 
+Action: Fix the gap and retest this case."
+TC_FN_037,Boundary Value Testing,Verify schedule creation behavior at minimal valid duration boundary.,"1. Open ""T?o l?ch h?c"".
+2. Set start and end with minimal allowed difference.
+3. Click ""T?o"".","- Date:2026-04-10
+- Start: 10:00
+- End: 10:15",System behavior matches spec: either accepts minimal duration or returns clear validation error.,26-03-26,Pass,Captures lower boundary rule for schedule duration.
+TC_FN_038,Timezone Conversion Testing,Verify schedule time shown on calendar equals local selected time after UTC conversion.,"1. Create schedule from ""T?o l?ch h?c"" with known local time.
+2. Save and reload tab ""L?ch h?c"".
+3. Compare displayed calendar time with originally selected local time.","- Local timezone: Asia/Ho_Chi_Minh (UTC+7)
+- Selected time: 09:30 to 11:00",Displayed time remains 09:30 to 11:00 local time (no +/- 7 hour drift).,26-03-26,Pass,Detects timezone offset regression between UI and backend.
+TC_FN_039,Boundary and Date Range Testing,Verify recurring schedule includes both start date and end date when they match selected weekdays.,"1. Open ""T?o l?ch hàng tu?n"".
+2. Set date range and weekday that include boundary dates.
+3. Click ""T?o"".","- Date range:2026-04-06 to2026-04-20
+- Weekday: Monday",Sessions on boundary dates are included when boundary dates satisfy selected weekday.,26-03-26,Pass,Validates inclusive boundary handling in recurring generator.
+TC_FN_040,Quiz Time Window Boundary Testing,Verify quiz status transitions correctly at start and end boundaries.,"1. Assign quiz with startAt and endAt.
+2. Observe status before start, at start, and after end.","- startAt: now +2 minutes
+- endAt: startAt + 10 minutes","Status transitions as expected: ""Ch?a m?"" -> ""?ang m?"" -> ""?ã h?t h?n"".",26-03-26,Pass,Covers boundary transitions around quiz availability window.
+TC_FN_041,Quiz Time Validation Testing,Verify quiz assignment prevents invalid window where end time is earlier than start time.,"1. Open ""Giao bài ki?m tra cho l?p"".
+2. Select one quiz.
+3. Set end time earlier than start time.
+4. Click ""Giao bài"".","- startAt:2026-04-12 14:00
+- endAt:2026-04-12 13:00",System blocks submission or backend returns clear validation error.,26-03-26,Pass,Prevents impossible quiz window configuration.
+TC_FN_042,Timezone Serialization Testing,Verify quiz time window sent with timezone offset is stored and displayed consistently.,"1. Assign quiz with specific startAt and endAt.
+2. Re-open tab ""Bài ki?m tra"" and compare displayed values.
+3. Verify values after page reload.","- Payload format: YYYY-MM-DDTHH:mm:ss.SSSZ
+- Local timezone: UTC+7",Displayed times match originally chosen local times; no timezone shift.,26-03-26,Pass,Detects serialization or parsing mismatch for quiz datetime fields.
+TC_FN_043,Client-Server Clock Drift Risk Testing,Verify quiz status remains correct when client clock differs from server clock.,"1. Prepare quiz with near-term start and end window.
+2. Simulate client time drift (+/-5 minutes) during observation.
+3. Compare displayed status with backend truth on refresh.","- Drift scenarios: +5 minutes, -5 minutes",Status remains consistent after server data refresh; no persistent wrong state.,26-03-26,Fail,"Assessment: FAIL 
+Root cause: reason: status is derived from client-side `dayjs()` instead of a server-synchronized clock source, so drifted device time can display incorrect quiz state. 
+Action: Fix the gap and retest this case."
+,,FN-12 Validation Completeness Pass (TC_FN_044 - TC_FN_050),,,,,,
+TC_FN_044,Schedule Required Field Validation Testing,"Verify ""T?o l?ch h?c"" enforces all required fields.","1. Open ""T?o l?ch h?c"".
+2. Leave title/date/start/end/room empty.
+3. Click ""T?o"".",- Empty payload from form,Inline validation messages are shown for all required fields; no API create call succeeds.,26-03-26,Pass,Closes required-field validation gap for single schedule form.
+TC_FN_045,Recurring Schedule Required Validation Testing,"Verify ""T?o l?ch hàng tu?n"" enforces required fields before submit.","1. Open ""T?o l?ch hàng tu?n"".
+2. Leave titlePrefix/dateRange/weekdays/start/end/room empty.
+3. Click ""T?o"".",- Empty recurring form,Validation messages are shown; no recurring schedules are generated.,26-03-26,Pass,Ensures full required validation in recurring schedule form.
+TC_FN_046,Notification Required Field Validation Testing,"Verify ""T?o thông báo"" requires description before submit.","1. Open tab ""Thông báo"".
+2. Click ""T?o thông báo"".
+3. Leave ""N?i dung"" empty and submit.",- Empty description,Validation error is shown for description; notification is not created.,26-03-26,Pass,Adds missing required validation case for notification form.
+TC_FN_047,Notification Attachment Robustness Testing,Verify notification submit still works when no attachment is uploaded.,"1. Open ""T?o thông báo"".
+2. Fill valid content and type.
+3. Do not upload any file.
+4. Click ""T?o m?i"".",- urlAttachment: [],Notification is created successfully without attachments.,26-03-26,Pass,Validates optional attachment behavior to avoid false required assumption.
+TC_FN_048,Student Add Modal Validation Testing,"Verify ""Thêm h?c viên"" does not add users when no row is selected.","1. Open ""Thêm h?c viên"" modal.
+2. Do not select any student.
+3. Click ""Thêm"".",- selectedRowKeys: [],Modal closes without change; class member list remains unchanged.,26-03-26,Pass,Validates selection precondition in add-student flow.
+TC_FN_049,Attendance Save Validation Testing,Verify attendance modal blocks save when no status is changed.,"1. Open ""?i?m danh bu?i h?c hi?n t?i"".
+2. Do not change any student status.
+3. Click ""L?u ?i?m danh"".",- No modified row,Warning message is shown and no create/update attendance request is sent.,26-03-26,Pass,Ensures no-op saves are safely prevented.
+TC_FN_050,Quiz Optional Time Window Validation Testing,Verify quiz assignment works when start and end time are both empty.,"1. Open ""Giao bài ki?m tra cho l?p"".
+2. Select one quiz.
+3. Leave time window empty.
+4. Click ""Giao bài"".","- startAt: empty
+- endAt: empty",Quiz is assigned successfully with open or default time behavior per backend rule.,26-03-26,Pass,Validates optional time-window contract in quiz assignment.
+,,FN-13 Security Robustness: SQL Injection and Unknown Values (TC_FN_051 - TC_FN_056),,,,,,
+TC_FN_051,SQL Injection Negative Testing,Verify class search input is safe against SQL injection payloads.,"1. Open /dashboard/class-management.
+2. Enter SQL injection string into search field.
+3. Click ""Tìm ki?m"".","- searchString: ' OR 1=1 --
+- searchString: '; DROP TABLE class; --","System treats payload as plain text, returns safe result set, and does not expose SQL/system errors.
+Expected HTTP Status:200 (or400 by backend validation policy), never500.",26-03-26,Pass,Validates backend parameterization and safe query handling for class filter.
+TC_FN_052,SQL Injection Negative Testing,"Verify student search in ""Danh sách H?c viên"" is safe against SQL injection patterns.","1. Open tab ""Danh sách H?c viên"".
+2. Input injection payload in search box.
+3. Execute search.","- searchString: "" OR ""1""=""1
+- searchString: admin'--","No SQL error is returned; data response remains constrained by normal filtering and authorization.
+Expected HTTP Status:200 (or400 by backend validation policy), never500.",26-03-26,Pass,Checks security of member filter endpoint under malicious input.
+TC_FN_053,Unknown Enum Value Testing,Verify API handles unknown status values safely in member filter requests.,"1. Call members API with invalid status value.
+2. Observe response and UI behavior.","- Endpoint: POST /api/v1/class/get-members-in-class
+- status: [""UNKNOWN_STATUS""]","Backend returns clear validation/business error (or empty safe result by spec) without crashing.
+Expected HTTP Status:400 or422 (or200 with empty result if API spec allows), never500.",26-03-26,Pass,Prevents unexpected enum values from causing server instability.
+TC_FN_054,Unknown Enum Value Testing,Verify attendance API rejects unsupported attendanceStatus values.,"1. Send create or update attendance request with invalid attendanceStatus.
+2. Observe response.","- attendanceStatus: ""UNKNOWN""
+- Endpoint: /api/v1/class/attendance or /api/v1/class/update-attendance","Request is rejected with validation error; no attendance record is corrupted.
+Expected HTTP Status:400 or422.",26-03-26,Pass,Validates strict enum enforcement for attendance state.
+TC_FN_055,Unknown Enum Value Testing,Verify notification API rejects unsupported typeNotification values.,"1. Submit notification payload with invalid typeNotification.
+2. Observe API response.","- typeNotification: 999
+- Endpoint: /api/v1/class/create-notification-in-class or /api/v1/class/update-notification-in-class","API returns validation error and notification is not created or updated.
+Expected HTTP Status:400 or422.",26-03-26,Pass,Ensures notification type is restricted to supported domain values.
+TC_FN_056,Unknown Field and Input Hardening Testing,Verify backend safely ignores or rejects unexpected fields in classroom operation payloads.,"1. Send class or schedule create payload containing extra unknown fields.
+2. Submit request and inspect response.","- Extra fields: { isAdmin: true, role: ""superuser"", rawSql: ""SELECT * FROM users"" }","Unknown fields do not escalate permission or alter logic; request is safely rejected or sanitized by backend contract.
+Expected HTTP Status:200 (sanitized and accepted) or400/422 (rejected by validation), never500.",26-03-26,Pass,Covers mass-assignment and unsafe payload extension risks.
+,,FN-14 Failure and Error Scenarios (TC_FN_057 - TC_FN_064),,,,,,
+TC_FN_057,API Authentication Error Testing,Verify classroom APIs return proper error when token is missing or expired.,"1. Call class filter and class detail APIs without token.
+2. Repeat with expired token.","- Endpoints: /api/v1/class/filter, /api/v1/class/detail?id={classId}
+- Authorization: missing or expired","API returns authentication error; UI redirects or shows proper error message.
+Expected HTTP Status:401.",26-03-26,Pass,Validates401 branch and session-expired handling.
+TC_FN_058,API Authorization Error Testing,Verify forbidden actions are blocked for roles without permission.,"1. Use teacher or student token to call management-only APIs.
+2. Attempt create class, delete class, and room create operations.","- Endpoints: /api/v1/class/create, /api/v1/class/delete, /api/v1/room/create","API returns forbidden error and no data changes are applied.
+Expected HTTP Status:403.",26-03-26,Pass,Validates403 permission boundary.
+TC_FN_059,Not Found Error Testing,Verify behavior when classId or scheduleId does not exist.,"1. Open /dashboard/class-management/{invalidId}.
+2. Call schedule or attendance APIs with non-existent scheduleId.","- classId: 99999999
+- scheduleId: 99999999","Backend returns not found error; UI shows fallback message and does not crash.
+Expected HTTP Status:404.",26-03-26,Pass,Validates404 branches for invalid references.
+TC_FN_060,Conflict Error Testing,Verify duplicate or conflicting operations return business conflict error.,"1. Create class with existing class name.
+2. Create room with existing room name.
+3. Add student already in class.","- Duplicate class/room name
+- Existing memberId in class","API returns conflict or business validation error; UI shows clear warning.
+Expected HTTP Status:409 (or400/422 depending backend business-error mapping).",26-03-26,Fail,"Assessment: FAIL 
+Root cause: duplicate/conflict operations are not consistently identified and blocked by current implementation. 
+Action: enforce uniqueness and conflict checks for class name, room name, and existing class-member relation."
+TC_FN_061,Payload Validation Error Testing,Verify malformed payload types are rejected safely.,"1. Send payload with wrong data type for ids, dates, and status fields.
+2. Observe API response and UI feedback.","- id: ""abc""
+- memberIds: [""x"", null]
+- fromDate: ""invalid-date""","Request fails with validation error; no partial update is stored.
+Expected HTTP Status:400 or422.",26-03-26,Pass,Validates strict request schema enforcement.
+TC_FN_062,Server Error Handling Testing,Verify UI resilience when backend returns internal server error.,"1. Trigger500 response on class/schedule/notification operations.
+2. Observe UI state and error message behavior.",- Simulated HTTP500 from API,"UI shows error toast/message, keeps current screen usable, and allows retry.
+Expected HTTP Status:500.",26-03-26,Pass,Validates recovery path for unexpected server failures.
+TC_FN_063,Network Timeout Testing,Verify behavior under slow network or request timeout.,"1. Simulate delayed response on class filter or schedule load.
+2. Observe loading indicator and timeout handling.",- Artificial delay > client timeout threshold,"Loading state is shown, then error feedback appears on timeout without UI freeze.
+Expected HTTP Status:408/504 or client timeout error object (no crash).",26-03-26,Fail,"Assessment: FAIL 
+Root cause: reason: client code has generic error handling but no explicit timeout threshold, timeout-specific branch, or dedicated timeout message path. 
+Action: Fix the gap and retest this case."
+TC_FN_064,Partial Failure Consistency Testing,Verify UI and data consistency when batch operations partially fail.,"1. Run bulk add or bulk remove students where one item is invalid.
+2. Reload tab ""Danh sách H?c viên"".",- memberIds: mixture of valid and invalid ids,"System behavior matches contract (all-or-nothing or partial-success with clear detail), and UI data stays consistent after refresh.
+Expected HTTP Status:200 with partial detail, or207/400/409 by contract; behavior must be deterministic and documented.",26-03-26,Pass,Validates transactional consistency for bulk actions.
+,,FN-15 Schedule API Completeness (TC_FN_065 - TC_FN_070),,,,,,
+TC_FN_065,Schedule API Contract Testing,Verify get-schedules API returns paged schedule data for selected class.,"1. Call POST /api/v1/class/get-schedules-in-class with classId filter.
+2. Inspect paging and content fields.","- classId: [validClassId]
+- fromDate: null, toDate: null",Response contains valid paging object and schedule content list.,26-03-26,Pass,Covers contract of schedule list endpoint used by calendar tab.
+TC_FN_066,Schedule API Detail Testing,Verify get-schedule-detail API returns full schedule detail by scheduleId.,"1. Call GET /api/v1/class/get-schedule-detail-in-class?scheduleId={id}.
+2. Validate title/time/room/class fields.",- scheduleId: valid schedule id,Detail response contains all fields required by schedule detail modal.,26-03-26,Pass,Ensures detail modal has sufficient data contract.
+TC_FN_067,Schedule API Create Testing,Verify create-schedule endpoint accepts array payload and creates schedule entries.,"1. Call POST /api/v1/class/create-schedule-in-class with one item array.
+2. Re-query schedule list.",- payload: [CreateScheduleRequest],API success response is returned and new schedule appears in list.,26-03-26,Pass,Validates create endpoint contract used by both single and recurring creation flows.
+TC_FN_068,Schedule API Update Testing,Verify update-schedule endpoint persists modified schedule fields.,"1. Call POST /api/v1/class/update-schedule-in-class.
+2. Re-open schedule detail.",- payload: UpdateScheduleRequest,Updated fields are persisted and returned by detail endpoint.,26-03-26,Pass,Covers persistence behavior for schedule edit flow.
+TC_FN_069,Schedule API Cancel Testing,Verify cancel-schedule endpoint handles ids query and updates status.,"1. Call POST /api/v1/class/cancelled-schedule-in-class?ids={id}.
+2. Reload schedule list.",- ids: one valid schedule id,Schedule status becomes canceled and appears with canceled UI state.,26-03-26,Pass,Covers cancellation endpoint used by schedule detail modal.
+TC_FN_070,Schedule API Error Branch Testing,Verify schedule APIs return controlled errors for invalid classId or scheduleId.,"1. Call list/detail/update/cancel endpoints with non-existent ids.
+2. Observe error responses and UI message handling.",- classId/scheduleId invalid values,Endpoints return controlled business or not-found errors; UI remains stable.,26-03-26,Pass,Completes negative API coverage for schedule lifecycle.
+,,FN-16 Overview API and Merge Completeness (TC_FN_071 - TC_FN_075),,,,,,
+TC_FN_071,Overview API Contract Testing,Verify overview student submit endpoint returns paged content for valid class id.,"1. Call GET /api/v1/quiz/overview-student-submit-in-class?id-class={classId}&page=0&size=100.
+2. Validate response structure and content list.",- classId: valid class id,Response includes stable paged structure and quiz submit fields per student.,26-03-26,Pass,Covers contract used to build dynamic quiz columns in overview tab.
+TC_FN_072,Overview API Contract Testing,Verify overview student attendance endpoint returns paged attendance counters.,"1. Call GET /api/v1/class/overview-student-attendance?classId={classId}&page=0&size=100.
+2. Validate present/absent/late fields for each student.",- classId: valid class id,Attendance response includes complete counters used by overview table.,26-03-26,Pass,Ensures attendance side of overview contract is stable.
+TC_FN_073,Overview Merge Logic Testing,Verify overview row merge maps quiz data with attendance by student id and fallback email rule.,"1. Prepare one student where attendance record matches by id.
+2. Prepare one student where id mapping is unavailable but fallback email mapping is possible.
+3. Open tab ""T?ng quan"" and inspect merged rows.",- Mixed mapping cases for id and email,Rows are merged correctly without duplicating student records.,26-03-26,Pass,Validates critical merge behavior in overview data pipeline.
+TC_FN_074,Overview Refresh Consistency Testing,"Verify clicking ""Làm m?i"" triggers both overview APIs and updates data atomically.","1. Open tab ""T?ng quan"".
+2. Change backend data for quiz score or attendance.
+3. Click ""Làm m?i"".",- Existing overview dataset with one changed value,Updated value appears after refresh and counters/table remain consistent.,26-03-26,Pass,Confirms end-to-end refresh reliability for overview tab.
+TC_FN_075,Overview Error Branch Testing,Verify overview tab error branch is handled when one API fails during Promise.all fetch.,"1. Force failure on one of two overview endpoints.
+2. Trigger overview fetch.
+3. Observe error handling and loading state reset.",- Simulated4xx or5xx response from one overview endpoint,UI shows controlled error and loading state returns to idle without crash.,26-03-26,Pass,Completes negative coverage for dual-endpoint overview loading flow.
+,,FN-17 General Information Data Integrity (TC_FN_076 - TC_FN_080),,,,,,
+TC_FN_076,Class Detail API Contract Testing,"Verify GET class detail endpoint returns all fields required by ""Thông tin chung"" tab.","1. Call GET /api/v1/class/detail?id={classId}.
+2. Validate response data includes name, title, teacher, createdAt, description.",- classId: valid class id,API response contains complete schema needed by General Information tab.,26-03-26,Pass,Ensures data contract completeness for class metadata display.
+TC_FN_077,Service Layer Validation Testing,Verify getClassByIdService throws controlled error when response code is not200.,"1. Mock class detail response with non-200 code.
+2. Trigger class detail load.",- classId valid but service response code !=200,Service throws error and UI error message path is triggered.,26-03-26,Pass,Validates service-level guard used before rendering class tabs.
+TC_FN_078,Class Detail Error Branch Testing,Verify class detail page shows controlled fallback when class detail cannot be loaded.,"1. Force get class detail API to fail.
+2. Open class detail route.",- Invalid classId or API error404/500,UI shows failure message and prevents broken tab rendering.,26-03-26,Pass,Confirms stable failure handling around General Information data source.
+TC_FN_079,Nullability Data Testing,Verify General Information tab handles null or empty description safely.,"1. Load class detail with description null.
+2. Open tab ""Thông tin chung"".",- description: null,Fallback text is shown and rendering remains stable.,26-03-26,Pass,Validates nullable metadata behavior from API through UI.
+TC_FN_080,Nested Field Integrity Testing,Verify missing or partial teacher object does not cause runtime crash in General Information tab.,"1. Test class detail payload where teacher fields are incomplete.
+2. Open tab ""Thông tin chung"".",- teacher object missing firstName or lastName,"UI degrades gracefully, and error handling prevents uncaught runtime crash.",26-03-26,Fail,"Assessment: FAIL 
+Root cause: teacher name is rendered by direct nested access and may crash when teacher object is null or incomplete. 
+Action: add defensive optional chaining and fallback text for teacher field."
+,,FN-18 Student List API and Membership Integrity (TC_FN_081 - TC_FN_085),,,,,,
+TC_FN_081,Members API Contract Testing,Verify POST /api/v1/class/get-members-in-class returns paged content with student member fields.,"1. Call get-members-in-class with classId, page, size.
+2. Validate content fields such as memberId, name, email, joinDate, status.","- payload: { classId, page: 0, size: 10 }",Response contains stable pagination metadata and member rows required by Student List tab.,26-03-26,Pass,Covers backend contract for student list data source.
+TC_FN_082,Membership Identifier Integrity Testing,"Verify remove-member flow uses memberId values from table rowKey, not userId.","1. Select one row in Student List tab.
+2. Trigger remove action.
+3. Inspect remove payload memberIds values.",- rowKey bound to memberId,Payload memberIds maps to class-member relation ids and removal succeeds.,26-03-26,Pass,Validates critical id-mapping for safe member deletion.
+TC_FN_083,Candidate Filter Service Testing,Verify add-student modal queries only active student candidates by intended role filter.,"1. Open add-students modal.
+2. Inspect filter-users request payload.","- userRoles: ['STUDENT']
+- isDelete: false",Only non-deleted STUDENT candidates are returned for selection.,26-03-26,Pass,Confirms candidate pool restriction for add-member flow.
+TC_FN_084,Modal Pagination Count Testing,Verify add-students modal pagination total matches actual selectable records after excluding existing users.,"1. Open add-students modal for class with many existing users.
+2. Compare pagination total with selectable rows across pages.",- existingUserIds length varies by class,Pagination total reflects real selectable candidates and never becomes negative or misleading.,26-03-26,Fail,"Assessment: FAIL 
+Root cause: modal total is estimated by subtracting existingUserIds.length from API total, which can produce inaccurate totals across pages. 
+Action: derive total from backend using exclusion-aware query or recalculate with server-supported filter."
+TC_FN_085,Bulk Remove Consistency Testing,Verify bulk remove updates table data and selection state consistently after API success.,"1. Select multiple member rows.
+2. Execute bulk remove and confirm.
+3. Reload member list and compare with prior state.","- payload: { id: classId, memberIds: [id1, id2, ...] }",Removed members disappear from list and stale selections are cleared.,26-03-26,Pass,Confirms end-to-end consistency after bulk member deletion.
+,,FN-19 Schedule Detail and Validation Integrity (TC_FN_086 - TC_FN_090),,,,,,
+TC_FN_086,Schedule Detail Data Binding Testing,Verify edit form in schedule detail pre-fills current schedule values correctly.,"1. Open one schedule detail.
+2. Click ""Ch?nh s?a"".
+3. Compare form values with selected schedule data.",- Schedule with known title/time/room,Edit form reflects current schedule values including accurate room id.,26-03-26,Fail,"Assessment: FAIL 
+Root cause: edit form sets roomId to constant 1 instead of selected schedule room id. 
+Action: bind roomId from schedule.room.id with fallback handling."
+TC_FN_087,Schedule Time Validation Testing,Verify create single schedule blocks invalid time range where end time is not later than start time.,"1. Open ""T?o l?ch h?c"" modal.
+2. Set endTime earlier than or equal to startTime.
+3. Submit form.","- startTime: 10:00
+- endTime: 09:30 (or 10:00)",Form-level validation blocks submit and shows clear time-range error.,26-03-26,Fail,"Assessment: FAIL 
+Root cause: current form enforces required fields but has no explicit end-after-start validation rule. 
+Action: add custom validator for startTime/endTime relation."
+TC_FN_088,Recurring Time Validation Testing,Verify recurring schedule form also rejects invalid start/end time range.,"1. Open ""T?o l?ch hàng tu?n"" modal.
+2. Set endTime earlier than startTime.
+3. Submit form.","- startTime: 14:00
+- endTime: 13:30",Validation prevents schedule generation with invalid time range.,26-03-26,Fail,"Assessment: FAIL 
+Root cause: recurring form currently lacks relational time validation. 
+Action: add end-after-start validator before schedule generation loop."
+TC_FN_089,Schedule Error Feedback Testing,Verify schedule tab shows actionable feedback when initial list fetch fails.,"1. Force get-schedules API to fail.
+2. Open tab ""L?ch h?c"".",- Simulated network or5xx error,"User receives visible error message and can retry via ""Làm m?i"".",26-03-26,Fail,"Assessment: FAIL 
+Root cause: fetch error is logged in console only at tab level, without explicit user-facing message in component catch block. 
+Action: surface user feedback in tab-level catch and keep retry path clear."
+TC_FN_090,Schedule Cancel Endpoint Payload Testing,Verify cancel schedule API supports multi-id payload consistently.,"1. Call cancel schedule service with multiple ids.
+2. Reload schedule list.","- ids: [id1, id2, id3]",All targeted schedules are canceled and status updates are reflected.,26-03-26,Pass,Completes batch-cancel payload coverage for schedule lifecycle.
+,,FN-20 Notification Data and Workflow Integrity (TC_FN_091 - TC_FN_095),,,,,,
+TC_FN_091,Notification List Contract Testing,"Verify notification list API supports search, date range, and paging contract used by tab ""Thông báo"".","1. Call POST /api/v1/class/get-list-notification-in-class with classId/searchString/fromDate/toDate/page/size.
+2. Validate response schema and paging fields.","- classId valid
+- searchString and date range optional combinations",Endpoint returns stable paged list with required notification fields.,26-03-26,Pass,Covers list retrieval contract for Notification tab.
+TC_FN_092,Notification Edit Type Mapping Testing,Verify edit flow preserves existing typeNotification value when loading notification into form.,"1. Open edit modal for existing Exercise notification.
+2. Submit without changing type intentionally.
+3. Inspect update payload.",- Existing notification type = Exercise,Update payload keeps original type value unless user explicitly changes it.,26-03-26,Fail,"Assessment: FAIL 
+Root cause: form initialization hardcodes typeNotification to default value, risking unintended type change during update. 
+Action: map backend enum/string type to numeric form option on edit load."
+TC_FN_093,Notification Attachment Upload Error Testing,Verify notification form handles cloud upload failure without corrupting attachment list state.,"1. Trigger upload error when adding attachment.
+2. Continue editing form.
+3. Submit notification.",- Simulated /api/v1/cloud/upload failure,"Error message is shown, failed file is not appended, existing attachments remain intact.",26-03-26,Pass,Validates robustness of upload sub-flow inside notification form.
+TC_FN_094,Notification Toggle Payload Testing,Verify visibility switch and delete action call toggle endpoint with correct isActive and isDelete flags.,"1. Toggle one notification switch.
+2. Delete another notification.
+3. Compare request payloads.",- Existing notification records with distinct states,Toggle request sets isDelete=false with changed isActive; delete request sets isDelete=true and keeps state context.,26-03-26,Pass,Ensures action semantics are encoded correctly in shared endpoint usage.
+TC_FN_095,Submission List Fetch Testing,Verify submission modal fetches exercise submissions by notificationId with search and pagination.,"1. Open ""Xem bài n?p"" for one Exercise notification.
+2. Search by student keyword.
+3. Change page and page size.",- Exercise notification id with existing submissions,"Submission list updates correctly by filter and pagination, with accurate totals.",26-03-26,Pass,Covers notification-to-submission monitoring workflow integrity.
+,,FN-21 Attendance Data and Mapping Integrity (TC_FN_096 - TC_FN_100),,,,,,
+TC_FN_096,Attendance Overview API Contract Testing,"Verify attendance overview endpoint returns paged session statistics used by tab ""?i?m danh"".","1. Call GET /api/v1/class/overview-statistic-attendance with classId, page, size.
+2. Validate content fields: scheduleId, title, startAt, endAt, present, absent, late.","- classId valid
+- page=0, size=10",Response contains stable paged structure and complete session statistics fields.,26-03-26,Pass,Covers contract for attendance tab main table source.
+TC_FN_097,Attendance Detail API Contract Testing,Verify attendance detail endpoint returns per-student records required by edit modal.,"1. Call GET /api/v1/class/detail-statistic-attendance with scheduleId.
+2. Validate userId, present/absent/late, attendanceId, and checkInDate fields.",- scheduleId valid,Response supports accurate mapping into modal row status and check-in display.,26-03-26,Pass,Ensures edit-mode data contract is complete and stable.
+TC_FN_098,Attendance StudentId Mapping Testing,Verify create-attendance payload uses correct user identifier for studentId.,"1. Open attendance create mode.
+2. Mark one student and save.
+3. Inspect create payload studentId against class member model.","- ClassMember.id (user id)
+- ClassMember.memberId (relation id)",Payload studentId must use user id field expected by backend contract.,26-03-26,Fail,"Assessment: FAIL 
+Root cause: modal currently maps create payload studentId from memberId while type model defines id as user id and memberId as relation id, creating risk of wrong attendance target. 
+Action: align payload mapping with backend contract and class member model semantics."
+TC_FN_099,Attendance Member Fetch Coverage Testing,Verify attendance modal can load complete student list for large classes.,"1. Open attendance modal for class with over 100 students.
+2. Compare loaded rows with actual class membership count.",- Class size > 100,All active students are available for attendance marking.,26-03-26,Fail,"Assessment: FAIL 
+Root cause: member fetch in modal uses fixed size=100, which can truncate list for larger classes. 
+Action: implement pagination loop or server-side fetch strategy to include all members."
+TC_FN_100,Attendance Save Branch Testing,Verify modal save correctly separates create and update requests based on mode and existing attendanceId.,"1. Open create mode and submit changed statuses.
+2. Open edit mode for existing session and modify statuses.
+3. Compare outgoing request types.",- Mixed students with and without existing attendance records,Create mode triggers create-attendance branch; edit mode triggers update-attendance branch for existing records.,26-03-26,Pass,Validates branch routing logic in attendance save handler.
