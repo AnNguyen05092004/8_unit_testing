@@ -24,6 +24,17 @@ cd "/Users/an/Documents/Ptit Docs/SQA/Đồ test2/BE-develop"
 ./mvnw spring-boot:run
 ```
 
+> Trong bài tập này, DB local mà web đang dùng (`doand21`) được xem như DB test.
+> Trước khi chạy, hãy reset/seed lại DB; sau khi chạy xong, hãy restore seed hoặc cleanup các row đã tạo.
+
+Ví dụ seed lại database test:
+```bash
+cd "/Users/an/Documents/PTIT/SQA/Đồ test2"
+./reset-test-db.sh reset
+```
+
+Nếu cần dọn lại dữ liệu sau khi test, chạy lại `./reset-test-db.sh reset` để đưa DB về seed ban đầu.
+
 ---
 
 ## 2. Chạy test
@@ -43,6 +54,8 @@ cd "/Users/an/Documents/Ptit Docs/SQA/Đồ test2/BE-develop"
   -De2e.student.password=abcd@1234 \
   -Dtest=CoursePurchaseFlowPageObjectSeleniumTest test
 ```
+
+Sau khi chạy xong, nếu test đã tạo cart item, order pending, enrollment hoặc payment callback data thì restore seed lại để DB quay về trạng thái sạch.
 
 ### Chạy class Regression (2 bug đã phát hiện)
 ```bash

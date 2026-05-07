@@ -1,4 +1,4 @@
-package com.doan2025.webtoeic.selenium.pages;
+package com.doan2025.webtoeic.selenium.coursePurchase.pages;
 
 import java.time.Duration;
 
@@ -66,6 +66,7 @@ public abstract class BasePage {
     /** Xóa nội dung input cũ rồi nhập giá trị mới. */
     protected void type(By locator, String value) {
         WebElement input = waitVisible(locator);
+        // Chọn toàn bộ + xóa để tránh còn sót text từ lần nhập trước.
         input.sendKeys(Keys.chord(Keys.COMMAND, "a"), Keys.DELETE);
         input.sendKeys(value);
         sleep();
@@ -96,7 +97,7 @@ public abstract class BasePage {
     }
 
     protected String escapeXpath(String text) {
-        // Tránh lỗi XPath khi title có dấu nháy kép.
+        // Tránh lỗi XPath khi title có dấu nháy kép hoặc khoảng trắng dư.
         return text.replace("\"", "").trim();
     }
 }

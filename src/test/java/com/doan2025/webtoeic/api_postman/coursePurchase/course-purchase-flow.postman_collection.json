@@ -1,0 +1,1056 @@
+{
+    "info": {
+        "_postman_id": "c3a9f02b-0f47-4fc3-b4e8-7f94db67ef11",
+        "name": "OrderController API Test Suite",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "description": "OrderController-only Postman suite rewritten from unit_test_report_purchase_flow.csv controller cases."
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{studentAccessToken}}",
+                "type": "string"
+            }
+        ]
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8888"
+        },
+        {
+            "key": "studentEmail",
+            "value": "student@gmail.com"
+        },
+        {
+            "key": "studentPassword",
+            "value": "abcd@1234"
+        },
+        {
+            "key": "teacherEmail",
+            "value": "teacher@gmail.com"
+        },
+        {
+            "key": "teacherPassword",
+            "value": "abcd@1234"
+        },
+        {
+            "key": "studentAccessToken",
+            "value": ""
+        },
+        {
+            "key": "teacherAccessToken",
+            "value": ""
+        },
+        {
+            "key": "selectedCourseId",
+            "value": ""
+        },
+        {
+            "key": "selectedCourseId2",
+            "value": ""
+        },
+        {
+            "key": "cartItemId",
+            "value": ""
+        },
+        {
+            "key": "orderId",
+            "value": ""
+        },
+        {
+            "key": "otherUserOrderId",
+            "value": "4801"
+        },
+        {
+            "key": "orderPage",
+            "value": "0"
+        },
+        {
+            "key": "orderSize",
+            "value": "10"
+        },
+        {
+            "key": "orderSort",
+            "value": "createdAt,desc"
+        }
+    ],
+    "item": [
+        {
+            "name": "Helpers",
+            "item": [
+                {
+                    "name": "Login Student",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{studentEmail}}\",\n  \"password\": \"{{studentPassword}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": "{{baseUrl}}/api/v1/auth/login"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);",
+                                    "pm.expect(json.data.authenticated).to.eql(true);",
+                                    "pm.collectionVariables.set('studentAccessToken', json.data.token);",
+                                    "pm.environment.set('studentAccessToken', json.data.token);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Login Teacher",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{teacherEmail}}\",\n  \"password\": \"{{teacherPassword}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": "{{baseUrl}}/api/v1/auth/login"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);",
+                                    "pm.expect(json.data.authenticated).to.eql(true);",
+                                    "pm.collectionVariables.set('teacherAccessToken', json.data.token);",
+                                    "pm.environment.set('teacherAccessToken', json.data.token);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Pick Purchasable Course",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": "{{baseUrl}}/api/v1/course/get-courses?page=0&size=50&sort=createdAt,desc"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "const rows = (json.data && json.data.content) || [];",
+                                    "const purchasable = rows.find(c => c && c.isBought === false && (!c.statusOrder || c.statusOrder === ''));",
+                                    "pm.test('Has at least one purchasable course', function () {",
+                                    "  pm.expect(!!purchasable).to.eql(true);",
+                                    "});",
+                                    "if (purchasable) {",
+                                    "  pm.collectionVariables.set('selectedCourseId', String(purchasable.id));",
+                                    "  pm.environment.set('selectedCourseId', String(purchasable.id));",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "HELPER - add course to cart for ORDER-CTRL-020",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/cart/add-to-cart?id={{selectedCourseId}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(200);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "HELPER - capture cartItemId for ORDER-CTRL-020",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{baseUrl}}/api/v1/cart"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "const rows = json.data || [];",
+                                    "pm.test('Cart has rows', function(){ pm.expect(rows.length).to.be.greaterThan(0); });",
+                                    "const row = rows[rows.length - 1];",
+                                    "pm.collectionVariables.set('cartItemId', String(row.id));",
+                                    "pm.environment.set('cartItemId', String(row.id));"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "HELPER - pick another purchasable course for ORDER-CTRL-029",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}"
+                        },
+                        "url": "{{baseUrl}}/api/v1/course/get-courses?page=0&size=50&sort=createdAt,desc"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "const rows = (json.data && json.data.content) || [];",
+                                    "const c1 = pm.collectionVariables.get('selectedCourseId');",
+                                    "const another = rows.find(c => c && String(c.id) !== String(c1) && c.isBought === false && (!c.statusOrder || c.statusOrder === ''));",
+                                    "pm.test('Found another purchasable course', function () { pm.expect(!!another).to.eql(true); });",
+                                    "if (another) {",
+                                    "  pm.collectionVariables.set('selectedCourseId2', String(another.id));",
+                                    "  pm.environment.set('selectedCourseId2', String(another.id));",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "OrderController",
+            "item": [
+                {
+                    "name": "ORDER-CTRL-001 - statisticOrders success (STUDENT)",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{baseUrl}}/api/v1/order/statistic-orders"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);",
+                                    "pm.expect(json.data).to.be.an('object');"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-002 - statisticOrders no auth -> 401",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "url": "{{baseUrl}}/api/v1/order/statistic-orders"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(401);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-003 - statisticOrders TEACHER forbidden -> 403",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{teacherAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "url": "{{baseUrl}}/api/v1/order/statistic-orders"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(403);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-004 - getOwnOrders success",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}"
+                        },
+                        "url": "{{baseUrl}}/api/v1/order?page={{orderPage}}&size={{orderSize}}&sort={{orderSort}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);",
+                                    "pm.expect(json.data.content).to.be.an('array');",
+                                    "if (json.data.content.length > 0) {",
+                                    "  pm.collectionVariables.set('orderId', String(json.data.content[0].id));",
+                                    "  pm.environment.set('orderId', String(json.data.content[0].id));",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-005 - getOwnOrders filter PENDING",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}"
+                        },
+                        "url": "{{baseUrl}}/api/v1/order?page=0&size=10&sort=createdAt,desc&statusOrder=PENDING"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-006 - getOwnOrders no auth -> 401",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}"
+                        },
+                        "url": "{{baseUrl}}/api/v1/order?page=0&size=10&sort=createdAt,desc"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(401);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-007 - getOwnOrders TEACHER forbidden -> 403",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{teacherAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}"
+                        },
+                        "url": "{{baseUrl}}/api/v1/order?page=0&size=10&sort=createdAt,desc"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(403);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-008 - getOwnOrders page=-1",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}"
+                        },
+                        "url": "{{baseUrl}}/api/v1/order?page=-1&size=10&sort=createdAt,desc"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(200);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-009 - getOwnOrders size=0",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}"
+                        },
+                        "url": "{{baseUrl}}/api/v1/order?page=0&size=0&sort=createdAt,desc"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(200);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-010 - getOwnOrders multiple status",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}"
+                        },
+                        "url": "{{baseUrl}}/api/v1/order?page=0&size=10&sort=createdAt,desc&statusOrder=PENDING&statusOrder=COMPLETED"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(200);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-020 - createOrderByCartItem success",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/create-order-by-cart-item?id={{cartItemId}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);",
+                                    "if (json.data && json.data.id) {",
+                                    "  pm.collectionVariables.set('orderId', String(json.data.id));",
+                                    "  pm.environment.set('orderId', String(json.data.id));",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-022 - createOrderByCartItem cart item not existed",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/create-order-by-cart-item?id=99999999"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(404);",
+                                    "pm.expect(pm.response.json().message).to.include('Cannot get Cart_item');"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-024 - createOrderByCartItem missing id -> 400",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/create-order-by-cart-item"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(400);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-025 - createOrderByCartItem no auth -> 401",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/create-order-by-cart-item?id=1"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(401);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-026 - createOrderByCartItem TEACHER forbidden -> 403",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{teacherAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/create-order-by-cart-item?id=1"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(403);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-028 - createOrderByCartItem negative id",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/create-order-by-cart-item?id=-1"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(404);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-029 - createOrderByCourse success",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/create-order-by-course?id={{selectedCourseId2}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "const json = pm.response.json();",
+                                    "pm.expect(json.code).to.eql(200);",
+                                    "if (json.data && json.data.id) {",
+                                    "  pm.collectionVariables.set('orderId', String(json.data.id));",
+                                    "  pm.environment.set('orderId', String(json.data.id));",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-030 - createOrderByCourse course not existed",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/create-order-by-course?id=99999999"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(404);",
+                                    "pm.expect(pm.response.json().message).to.include('Course not existed');"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-031 - createOrderByCourse already purchased/ordered",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/create-order-by-course?id={{selectedCourseId2}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(400);",
+                                    "pm.expect(pm.response.json().message).to.include('Order already exists');"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-032 - createOrderByCourse user already enrolled",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{baseUrl}}/api/v1/payment/return?vnp_TxnRef=demo_{{orderId}}&vnp_TransactionNo=77777&vnp_Amount=100000&vnp_PayDate=20260506120000&vnp_ResponseCode=00&vnp_TransactionStatus=00"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect([200,301,302,303,307,308]).to.include(pm.response.code);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-032b - createOrderByCourse again after enrollment",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/create-order-by-course?id={{selectedCourseId2}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(400);",
+                                    "pm.expect(pm.response.json().message).to.satisfy(function(msg){ return msg.includes('already exists'); });"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-033 - createOrderByCourse missing id -> 400",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/create-order-by-course"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(400);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-034 - createOrderByCourse no auth -> 401",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/create-order-by-course?id=1"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(401);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-035 - createOrderByCourse TEACHER forbidden -> 403",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{teacherAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/create-order-by-course?id=1"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(403);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-037 - createOrderByCourse negative id",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/create-order-by-course?id=-1"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(404);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-011 - deleteOrder success",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/delete?id={{orderId}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.response.to.have.status(200);",
+                                    "pm.expect(pm.response.json().code).to.eql(200);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-012 - deleteOrder missing id -> 400",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/delete"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(400);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-013 - deleteOrder not owner",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/delete?id={{otherUserOrderId}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(400);",
+                                    "pm.expect(pm.response.json().message).to.include('not permission');"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-015 - deleteOrder no auth -> 401",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/delete?id=1"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(401);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-016 - deleteOrder TEACHER forbidden -> 403",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{teacherAccessToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/delete?id=1"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(403);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-017 - deleteOrder multiple ids",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/delete?id={{otherUserOrderId}}&id={{otherUserOrderId}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(403);"
+                                ]
+                            }
+                        }
+                    ],
+                    "description": "Spec expectation for this scenario is 403 (forbidden/not-permission path)."
+                },
+                {
+                    "name": "ORDER-CTRL-018 - deleteOrder no id (empty list) -> 400",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/delete"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(400);"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ORDER-CTRL-019 - deleteOrder negative id -> 404",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{baseUrl}}/api/v1/order/delete?id=-1"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.expect(pm.response.code).to.eql(404);"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
