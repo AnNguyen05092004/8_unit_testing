@@ -1,0 +1,733 @@
+{
+  "info": {
+    "_postman_id": "a7f36458-86ea-43b7-8f83-0fdf8bf10b01",
+    "name": "Dashboard Class Management API",
+    "description": "API interactions used by dashboard/class-management and class detail tabs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('HTTP status is not 5xx', function () {",
+          "  pm.expect(pm.response.code).to.be.below(500);",
+          "});",
+          "let body = {};",
+          "try { body = pm.response.json(); } catch (e) { body = {}; }",
+          "pm.test('Response has standard wrapper (code/message) when JSON', function () {",
+          "  if (Object.keys(body).length > 0) {",
+          "    pm.expect(body).to.have.property('code');",
+          "    pm.expect(body).to.have.property('message');",
+          "  }",
+          "});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Auth",
+      "item": [
+        {
+          "name": "Login Teacher",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "if (res && res.data && res.data.token) {",
+                  "  pm.environment.set('teacherToken', res.data.token);",
+                  "  pm.environment.set('authToken', res.data.token);",
+                  "}",
+                  "pm.test('Teacher login success', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{teacherEmail}}\",\n  \"password\": \"{{teacherPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/login"
+          }
+        },
+        {
+          "name": "Login Manager",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "if (res && res.data && res.data.token) {",
+                  "  pm.environment.set('managerToken', res.data.token);",
+                  "}",
+                  "pm.test('Manager login success', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{managerEmail}}\",\n  \"password\": \"{{managerPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Teacher - Class Management",
+      "item": [
+        {
+          "name": "Get Own Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/user"
+          }
+        },
+        {
+          "name": "Filter Classes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "const firstClass = res?.data?.content?.[0];",
+                  "if (firstClass && firstClass.id) { pm.environment.set('classId', firstClass.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"searchString\": \"\",\n  \"page\": 0,\n  \"size\": 10\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/class/filter"
+          }
+        },
+        {
+          "name": "Get Class Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/class/detail?id={{classId}}"
+          }
+        },
+        {
+          "name": "Get Members In Class",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "const first = res?.data?.content?.[0];",
+                  "if (first && first.memberId) { pm.environment.set('classMemberId', first.memberId); }",
+                  "if (first && first.id) { pm.environment.set('studentUserId', first.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": {{classId}},\n  \"searchString\": \"\",\n  \"status\": [],\n  \"joinDate\": null\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/class/get-members-in-class?page=0&size=20"
+          }
+        },
+        {
+          "name": "Get Schedules In Class",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "const first = res?.data?.content?.[0];",
+                  "if (first && first.id) { pm.environment.set('scheduleId', first.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": [{{classId}}],\n  \"status\": [],\n  \"teacherId\": [],\n  \"fromDate\": null,\n  \"toDate\": null\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/class/get-schedules-in-class"
+          }
+        },
+        {
+          "name": "Get Schedule Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/class/get-schedule-detail-in-class?scheduleId={{scheduleId}}"
+          }
+        },
+        {
+          "name": "Get Notifications In Class",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "const first = res?.data?.content?.[0];",
+                  "if (first && first.id) { pm.environment.set('notificationId', first.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": {{classId}},\n  \"searchString\": \"\",\n  \"fromDate\": null,\n  \"toDate\": null\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/class/get-list-notification-in-class?page=0&size=20"
+          }
+        },
+        {
+          "name": "Get Notification Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/class/get-detail-notification-in-class?notificationId={{notificationId}}"
+          }
+        },
+        {
+          "name": "Overview Student Attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/class/overview-student-attendance?classId={{classId}}&page=0&size=100"
+          }
+        },
+        {
+          "name": "Overview Statistic Attendance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "const first = res?.data?.content?.[0];",
+                  "if (first && first.scheduleId) { pm.environment.set('attendanceScheduleId', first.scheduleId); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/class/overview-statistic-attendance?classId={{classId}}&page=0&size=20"
+          }
+        },
+        {
+          "name": "Detail Statistic Attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/class/detail-statistic-attendance?scheduleId={{attendanceScheduleId}}&page=0&size=20"
+          }
+        },
+        {
+          "name": "List Quiz In Class",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "const first = res?.data?.content?.[0];",
+                  "if (first && first.id) { pm.environment.set('sharedQuizId', first.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": "{{baseUrl}}/api/v1/quiz/list-quiz-in-class?id-class={{classId}}&page=0&size=20&sort=createdAt,desc"
+          }
+        },
+        {
+          "name": "Overview Student Submit In Class",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/quiz/overview-student-submit-in-class?id-class={{classId}}&page=0&size=100"
+          }
+        },
+        {
+          "name": "Search Submitted Quiz By Student In Class",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "const first = res?.data?.content?.[0];",
+                  "if (first && first.id) { pm.environment.set('submittedQuizId', first.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": "{{baseUrl}}/api/v1/quiz/search-submitted-quiz-by-student-in-class?id-quiz={{sharedQuizId}}&id-class={{classId}}&page=0&size=20"
+          }
+        },
+        {
+          "name": "View Detail Submitted Quiz By Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/quiz/view-detail-submitted-quiz-by-student-in-class?id-submitted={{submittedQuizId}}"
+          }
+        },
+        {
+          "name": "Statistic Overview Quizzes In Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": "{{baseUrl}}/api/v1/quiz/statistic-overview-quizzes-in-class?id-class={{classId}}&score=0"
+          }
+        },
+        {
+          "name": "Statistic Detail Quiz In Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": "{{baseUrl}}/api/v1/quiz/statistic-detail-quiz-in-class?id-quiz={{sharedQuizId}}&id-class={{classId}}&score=0"
+          }
+        },
+        {
+          "name": "User Filter (Add Student Modal)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "const first = res?.data?.content?.[0];",
+                  "if (first && first.id) { pm.environment.set('candidateStudentId', first.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"searchString\": \"\",\n  \"role\": [\"student\"],\n  \"isActive\": true,\n  \"isDelete\": false,\n  \"page\": 0,\n  \"size\": 10\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/user/filter?page=0&size=10"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Teacher - Mutation APIs",
+      "item": [
+        {
+          "name": "Add User To Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": {{classId}},\n  \"memberIds\": [{{candidateStudentId}}]\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/class/add-user-to-class"
+          }
+        },
+        {
+          "name": "Remove User From Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": {{classId}},\n  \"memberIds\": [{{candidateStudentId}}]\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/class/remove-user-from-class"
+          }
+        },
+        {
+          "name": "Create Notification In Class",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "const id = res?.data?.id;",
+                  "if (id) { pm.environment.set('createdNotificationId', id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": {{classId}},\n  \"description\": \"Postman test notification\",\n  \"isPin\": false,\n  \"typeNotification\": 1,\n  \"fromDate\": null,\n  \"toDate\": null,\n  \"urlAttachment\": []\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/class/create-notification-in-class"
+          }
+        },
+        {
+          "name": "Update Notification In Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": {{classId}},\n  \"classNotificationId\": {{createdNotificationId}},\n  \"description\": \"Postman test notification updated\",\n  \"isPin\": true,\n  \"typeNotification\": 1,\n  \"fromDate\": null,\n  \"toDate\": null,\n  \"urlAttachment\": []\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/class/update-notification-in-class"
+          }
+        },
+        {
+          "name": "Disable Or Delete Notification In Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": {{classId}},\n  \"classNotificationId\": {{createdNotificationId}},\n  \"isActive\": false,\n  \"isDelete\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/class/disable-or-delete-notification-in-class"
+          }
+        },
+        {
+          "name": "Filter Rooms",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "const first = res?.data?.[0];",
+                  "if (first && first.id) { pm.environment.set('roomId', first.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"searchString\": \"\",\n  \"isActive\": true,\n  \"isDelete\": false\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/room/filter"
+          }
+        },
+        {
+          "name": "Create Schedule In Class",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "const first = res?.data?.content?.[0] || res?.data?.[0] || null;",
+                  "if (first && first.id) { pm.environment.set('createdScheduleId', first.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"title\": \"Postman New Schedule\",\n    \"startAt\": \"2026-04-30 09:00:00\",\n    \"endAt\": \"2026-04-30 10:30:00\",\n    \"roomId\": {{roomId}},\n    \"classId\": {{classId}}\n  }\n]"
+            },
+            "url": "{{baseUrl}}/api/v1/class/create-schedule-in-class"
+          }
+        },
+        {
+          "name": "Update Schedule In Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": {{createdScheduleId}},\n  \"title\": \"Postman Updated Schedule\",\n  \"startAt\": \"2026-04-30 09:00:00\",\n  \"endAt\": \"2026-04-30 10:30:00\",\n  \"roomId\": {{roomId}},\n  \"classId\": {{classId}},\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/class/update-schedule-in-class"
+          }
+        },
+        {
+          "name": "Cancelled Schedule In Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/class/cancelled-schedule-in-class?ids={{createdScheduleId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Manager - Mutation APIs",
+      "item": [
+        {
+          "name": "Set Manager Token For Requests",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('authToken', pm.environment.get('managerToken'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/user"
+          }
+        },
+        {
+          "name": "Create Class",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "const id = res?.data?.id;",
+                  "if (id) { pm.environment.set('createdClassId', id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Class\",\n  \"description\": \"Created by Postman\",\n  \"title\": \"Postman Class Title\",\n  \"teacher\": {{defaultTeacherId}},\n  \"memberIds\": []\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/class/create"
+          }
+        },
+        {
+          "name": "Update Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": {{createdClassId}},\n  \"name\": \"Postman Class Updated\",\n  \"description\": \"Updated by Postman\",\n  \"title\": \"Postman Class Title Updated\",\n  \"teacher\": {{defaultTeacherId}},\n  \"status\": \"PLANNING\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/class/update"
+          }
+        },
+        {
+          "name": "Delete Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/v1/class/delete?ids={{createdClassId}}"
+          }
+        },
+        {
+          "name": "Create Room",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let res = {};",
+                  "try { res = pm.response.json(); } catch (e) {}",
+                  "const id = res?.data?.id;",
+                  "if (id) { pm.environment.set('createdRoomId', id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Room\",\n  \"description\": \"Created by Postman\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/room/create"
+          }
+        },
+        {
+          "name": "Update Room",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": {{createdRoomId}},\n  \"name\": \"Postman Room Updated\",\n  \"description\": \"Updated by Postman\",\n  \"isActive\": true,\n  \"isDelete\": false\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/room/update"
+          }
+        }
+      ]
+    }
+  ]
+}
