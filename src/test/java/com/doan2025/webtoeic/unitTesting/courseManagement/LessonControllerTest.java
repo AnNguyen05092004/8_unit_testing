@@ -1,4 +1,4 @@
-package com.doan2025.webtoeic.controller;
+package com.doan2025.webtoeic.unitTesting.courseManagement;
 
 import com.doan2025.webtoeic.config.SecurityConfig;
 import com.doan2025.webtoeic.dto.SearchBaseDto;

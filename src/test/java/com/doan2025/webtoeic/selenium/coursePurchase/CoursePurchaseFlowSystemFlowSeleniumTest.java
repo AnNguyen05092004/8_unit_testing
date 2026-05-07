@@ -1,4 +1,4 @@
-package com.doan2025.webtoeic.selenium;
+package com.doan2025.webtoeic.selenium.coursePurchase;
 
 import java.time.Duration;
 

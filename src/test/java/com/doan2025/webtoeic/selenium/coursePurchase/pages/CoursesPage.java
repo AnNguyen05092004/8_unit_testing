@@ -1,4 +1,4 @@
-package com.doan2025.webtoeic.selenium.pages;
+package com.doan2025.webtoeic.selenium.coursePurchase.pages;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
